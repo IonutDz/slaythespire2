@@ -1,0 +1,1992 @@
+---
+import spireData from "../data/spire-data.json";
+import { buildGuides } from "../data/buildGuides";
+
+const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003c");
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>STS2 Card Library</title>
+    <meta
+      name="description"
+      content="Biblioteca de cartas de Slay the Spire 2 con filtros bilingües."
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="home-logo" href="/creator" title="Creador de Builds">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#d9b263"/>
+            <path d="M8 22V12l8-5 8 5v10l-8 4-8-4z" fill="#18130a" stroke="#18130a" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 7v19M8 12l8 5 8-5" stroke="#d9b263" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">STS2</span>
+        </a>
+        <div class="topbar-center">
+          <h1 id="pageTitle">Biblioteca de cartas</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="nav-link" href="/">Portal</a>
+          <a class="nav-link" href="/creator">Creador</a>
+          <div class="lang-toggle" id="langToggle" aria-label="Language">
+            <button type="button" data-lang="es">ES</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="catalog-shell">
+        <section class="catalog-summary">
+          <div>
+            <p id="summaryKicker" class="eyebrow">Cartas reales</p>
+            <h2 id="summaryTitle">Todas las cartas</h2>
+          </div>
+          <div id="summaryStats" class="stats-row"></div>
+        </section>
+
+        <section class="filter-band" aria-label="Filtros">
+          <label class="field search-field">
+            <span id="searchLabel">Buscar carta</span>
+            <input id="searchInput" type="search" placeholder="Atormentar, Haunt, daño, Poison" />
+          </label>
+          <label class="field">
+            <span id="classLabel">Clase</span>
+            <select id="classFilter"></select>
+          </label>
+          <label class="field">
+            <span id="typeLabel">Tipo</span>
+            <select id="typeFilter"></select>
+          </label>
+          <label class="field">
+            <span id="rarityLabel">Rareza</span>
+            <select id="rarityFilter"></select>
+          </label>
+          <label class="field compact">
+            <span id="costLabel">Coste</span>
+            <select id="costFilter"></select>
+          </label>
+          <button id="resetButton" class="reset-button" type="button">Limpiar</button>
+        </section>
+
+        <section class="results-heading">
+          <p id="resultsText"></p>
+        </section>
+
+        <section id="buildSearchPanel" class="build-search-panel" aria-live="polite" hidden></section>
+
+        <section id="cardsGrid" class="catalog-grid" aria-live="polite"></section>
+      </main>
+
+      <dialog id="cardDialog" class="card-dialog">
+        <article class="dialog-panel">
+          <button id="dialogClose" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+          <div id="dialogBody" class="dialog-body"></div>
+        </article>
+      </dialog>
+    </div>
+
+    <script is:inline id="cardsData" type="application/json" set:html={payload}></script>
+    <script is:inline type="module">
+      const { spireData, buildGuides } = JSON.parse(document.getElementById("cardsData").textContent);
+      const IMAGE_BASE = "https://spire-codex.com";
+      const allCards = spireData.allCards || Object.values(spireData.cardsByClass).flat();
+
+      const copy = {
+        es: {
+          data: "Datos",
+          pageTitle: "Biblioteca de cartas",
+          portal: "Portal de builds",
+          summaryKicker: "Cartas reales",
+          summaryTitle: "Todas las cartas",
+          total: "cartas totales",
+          shown: "mostradas",
+          classes: "fuentes",
+          search: "Buscar carta",
+          searchPlaceholder: "Atormentar, Haunt, daño, Poison",
+          class: "Clase",
+          type: "Tipo",
+          rarity: "Rareza",
+          cost: "Coste",
+          reset: "Limpiar",
+          all: "Todas",
+          noResults: "Sin resultados con esos filtros.",
+          buildsFound: "builds donde sirve",
+          buildMatchSingular: "build recomendada",
+          buildMatchPlural: "builds recomendadas",
+          buildAdviceTitle: "Dónde encaja esta carta",
+          buildAdviceEmpty: "No está marcada como pieza de una build concreta. Úsala por estadísticas, curva o necesidad del acto.",
+          buildSearchTitle: "Builds para tu búsqueda",
+          buildSearchHint: "Estas son las cartas encontradas que sí aparecen en las builds guardadas.",
+          buildSearchEmpty: "No hay builds guardadas para esa carta todavía. Puede ser buena por números, pero no está en una build concreta de la guía.",
+          buildGroupedTitle: "Builds donde sirven",
+          buildCardSection: "Cartas y sus builds",
+          buildWhy: "Por qué",
+          roleCore: "Core",
+          roleEnabler: "Habilitador",
+          rolePayoff: "Payoff",
+          roleSafe: "Pick seguro",
+          roleAvoid: "Evitar",
+          resultSingular: "carta",
+          resultPlural: "cartas",
+          details: "Detalle",
+          close: "Cerrar",
+          baseDescription: "Descripción",
+          upgradeDescription: "Mejora",
+          stats: "Datos",
+          englishName: "Nombre EN",
+          source: "Abrir en Spire Codex",
+          generatedCards: "Genera",
+          keywords: "Keywords",
+          noDescription: "Sin descripción.",
+          target: "Objetivo",
+          damage: "Daño",
+          block: "Bloqueo",
+          hits: "Golpes",
+          draw: "Robo",
+          energy: "Energía",
+          hp: "PV",
+        },
+        en: {
+          data: "Data",
+          pageTitle: "Card Library",
+          portal: "Build Portal",
+          summaryKicker: "Real Cards",
+          summaryTitle: "All Cards",
+          total: "total cards",
+          shown: "shown",
+          classes: "sources",
+          search: "Search card",
+          searchPlaceholder: "Haunt, Atormentar, damage, Poison",
+          class: "Class",
+          type: "Type",
+          rarity: "Rarity",
+          cost: "Cost",
+          reset: "Reset",
+          all: "All",
+          noResults: "No cards match those filters.",
+          buildsFound: "useful builds",
+          buildMatchSingular: "recommended build",
+          buildMatchPlural: "recommended builds",
+          buildAdviceTitle: "Where this card fits",
+          buildAdviceEmpty: "This card is not tagged as part of a specific build. Pick it for stats, curve, or current act needs.",
+          buildSearchTitle: "Builds for your search",
+          buildSearchHint: "These are the found cards that are present in the saved build guide.",
+          buildSearchEmpty: "There are no saved builds for that card yet. It may still be good by numbers, but it is not part of a specific guide build.",
+          buildGroupedTitle: "Builds where they fit",
+          buildCardSection: "Cards and their builds",
+          buildWhy: "Why",
+          roleCore: "Core",
+          roleEnabler: "Enabler",
+          rolePayoff: "Payoff",
+          roleSafe: "Safe pick",
+          roleAvoid: "Avoid",
+          resultSingular: "card",
+          resultPlural: "cards",
+          details: "Details",
+          close: "Close",
+          baseDescription: "Description",
+          upgradeDescription: "Upgrade",
+          stats: "Stats",
+          englishName: "ES name",
+          source: "Open in Spire Codex",
+          generatedCards: "Spawns",
+          keywords: "Keywords",
+          noDescription: "No description.",
+          target: "Target",
+          damage: "Damage",
+          block: "Block",
+          hits: "Hits",
+          draw: "Draw",
+          energy: "Energy",
+          hp: "HP",
+        },
+      };
+
+      const colorLabels = {
+        es: {
+          ironclad: "Ironclad",
+          silent: "Silent",
+          defect: "Defect",
+          regent: "Regent",
+          necrobinder: "Necrobinder",
+          colorless: "Incolora",
+          curse: "Maldición",
+          token: "Token",
+          event: "Evento",
+          quest: "Misión",
+          status: "Estado",
+        },
+        en: {
+          ironclad: "Ironclad",
+          silent: "Silent",
+          defect: "Defect",
+          regent: "Regent",
+          necrobinder: "Necrobinder",
+          colorless: "Colorless",
+          curse: "Curse",
+          token: "Token",
+          event: "Event",
+          quest: "Quest",
+          status: "Status",
+        },
+      };
+
+      const typeLabels = {
+        es: {
+          Attack: "Ataque",
+          Skill: "Habilidad",
+          Power: "Poder",
+          Status: "Estado",
+          Curse: "Maldición",
+          Quest: "Misión",
+        },
+        en: {},
+      };
+
+      const rarityLabels = {
+        es: {
+          Basic: "Básica",
+          Common: "Común",
+          Uncommon: "Infrecuente",
+          Rare: "Rara",
+          Ancient: "Antigua",
+          Token: "Token",
+          Curse: "Maldición",
+          Event: "Evento",
+          Quest: "Misión",
+          Status: "Estado",
+        },
+        en: {},
+      };
+
+      const colorOrder = ["ironclad", "silent", "defect", "regent", "necrobinder", "colorless", "token", "status", "curse", "quest", "event"];
+      const typeOrder = ["Attack", "Skill", "Power", "Status", "Curse", "Quest"];
+      const rarityOrder = ["Basic", "Common", "Uncommon", "Rare", "Ancient", "Token", "Curse", "Event"];
+      const costOrder = ["0", "1", "2", "3", "4", "5", "X", "XS", "U"];
+      const buildSections = [
+        ["core", "roleCore", 4],
+        ["enablers", "roleEnabler", 3],
+        ["payoffs", "rolePayoff", 3],
+        ["safePicks", "roleSafe", 2],
+        ["avoid", "roleAvoid", 0],
+      ];
+      const buildCatalog = Object.values(buildGuides || {}).flatMap((guide) =>
+        (guide.builds || []).map((build) => ({ guide, build }))
+      );
+
+      const state = {
+        lang: localStorage.getItem("sts2-lang") || "es",
+        query: "",
+        color: "all",
+        type: "all",
+        rarity: "all",
+        cost: "all",
+        activeCardId: null,
+      };
+
+      const els = {
+        pageTitle: document.getElementById("pageTitle"),
+        langToggle: document.getElementById("langToggle"),
+        summaryKicker: document.getElementById("summaryKicker"),
+        summaryTitle: document.getElementById("summaryTitle"),
+        summaryStats: document.getElementById("summaryStats"),
+        searchLabel: document.getElementById("searchLabel"),
+        searchInput: document.getElementById("searchInput"),
+        classLabel: document.getElementById("classLabel"),
+        classFilter: document.getElementById("classFilter"),
+        typeLabel: document.getElementById("typeLabel"),
+        typeFilter: document.getElementById("typeFilter"),
+        rarityLabel: document.getElementById("rarityLabel"),
+        rarityFilter: document.getElementById("rarityFilter"),
+        costLabel: document.getElementById("costLabel"),
+        costFilter: document.getElementById("costFilter"),
+        resetButton: document.getElementById("resetButton"),
+        resultsText: document.getElementById("resultsText"),
+        buildSearchPanel: document.getElementById("buildSearchPanel"),
+        cardsGrid: document.getElementById("cardsGrid"),
+        cardDialog: document.getElementById("cardDialog"),
+        dialogBody: document.getElementById("dialogBody"),
+        dialogClose: document.getElementById("dialogClose"),
+      };
+
+      function t(key) {
+        return copy[state.lang]?.[key] || copy.es[key] || key;
+      }
+
+      function resultWord(count) {
+        return count === 1 ? t("resultSingular") : t("resultPlural");
+      }
+
+      function cardById(id) {
+        return allCards.find((card) => card.id === id);
+      }
+
+      function escapeHtml(value = "") {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function fold(value = "") {
+        return String(value)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+      }
+
+      function normalizeName(value = "") {
+        return fold(value).replace(/[^a-z0-9]+/g, " ").trim();
+      }
+
+      function cardAliases(card) {
+        return [...new Set([card.name, card.localized?.es?.name, cardName(card)].filter(Boolean).map(normalizeName))].filter(Boolean);
+      }
+
+      function sectionReason(section, build) {
+        const reasons = {
+          es: {
+            core: `Es una pieza central del plan ${build.name}.`,
+            enablers: `Activa o estabiliza el motor de ${build.name}.`,
+            payoffs: `Convierte el setup de ${build.name} en daño, defensa o ventaja real.`,
+            safePicks: `Es un pick seguro mientras construyes hacia ${build.name}.`,
+            avoid: `Normalmente estorba este plan o compite con sus recursos clave.`,
+          },
+          en: {
+            core: `It is a core piece of the ${build.name} plan.`,
+            enablers: `It enables or stabilizes the ${build.name} engine.`,
+            payoffs: `It turns the ${build.name} setup into real damage, defense, or advantage.`,
+            safePicks: `It is a safe pick while you build toward ${build.name}.`,
+            avoid: `It usually conflicts with this plan or its key resources.`,
+          },
+        };
+        return reasons[state.lang]?.[section] || reasons.es[section];
+      }
+
+      function findCardBuildMatches(card, includeAvoid = false) {
+        const aliases = cardAliases(card);
+        if (!aliases.length) return [];
+
+        return buildCatalog
+          .flatMap(({ guide, build }) =>
+            buildSections.flatMap(([section, roleKey, score]) => {
+              if (section === "avoid" && !includeAvoid) return [];
+              return (build[section] || [])
+                .filter((entry) => {
+                  const normalizedEntry = normalizeName(entry);
+                  return aliases.some(
+                    (alias) => normalizedEntry === alias || normalizedEntry.includes(alias) || alias.includes(normalizedEntry)
+                  );
+                })
+                .map((entry) => ({ guide, build, section, entry, roleKey, score }));
+            })
+          )
+          .sort((a, b) => b.score - a.score || a.guide.name.localeCompare(b.guide.name) || a.build.name.localeCompare(b.build.name));
+      }
+
+      function buildMatchWord(count) {
+        return count === 1 ? t("buildMatchSingular") : t("buildMatchPlural");
+      }
+
+      const buildMatchCache = new Map();
+
+      function getCachedBuildMatches(card) {
+        if (buildMatchCache.has(card.id)) return buildMatchCache.get(card.id);
+        const matches = findCardBuildMatches(card);
+        buildMatchCache.set(card.id, matches);
+        return matches;
+      }
+
+      function buildBadgesHtml(card) {
+        const matches = getCachedBuildMatches(card).filter((m) => m.section !== "avoid");
+        if (!matches.length) return "";
+        return `<div class="card-build-hints">${matches
+          .slice(0, 3)
+          .map(
+            (m) =>
+              `<span class="build-badge role-${m.section}">${escapeHtml(m.build.name)} · ${escapeHtml(t(m.roleKey))}</span>`
+          )
+          .join("")}</div>`;
+      }
+
+      function buildSearchText(card) {
+        return findCardBuildMatches(card, true)
+          .map(({ guide, build, entry, roleKey }) => `${guide.name} ${build.name} ${build.label} ${build.goal} ${build.multiplayerRole} ${entry} ${t(roleKey)}`)
+          .join(" ");
+      }
+
+      function cleanText(text = "") {
+        return text
+          .replace(/\[gold\]|\[\/gold\]/g, "")
+          .replace(/\[energy:(\d)\]/g, "$1E")
+          .replace(/\[star:(\d)\]/g, "$1S")
+          .replace(/\[purple\]|\[\/purple\]/g, "")
+          .replace(/\n/g, " ");
+      }
+
+      function normalizeUrl(url) {
+        if (!url) return "";
+        return url.startsWith("http") ? url : `${IMAGE_BASE}${url}`;
+      }
+
+      function localizedCard(card) {
+        return state.lang === "es" ? card.localized?.es : null;
+      }
+
+      function cardName(card) {
+        return localizedCard(card)?.name || card.name;
+      }
+
+      function cardDescription(card) {
+        return localizedCard(card)?.description || card.description || "";
+      }
+
+      function cardUpgradeDescription(card) {
+        return localizedCard(card)?.upgrade_description || card.upgrade_description || "";
+      }
+
+      function labelValue(map, value) {
+        return map[state.lang]?.[value] || value;
+      }
+
+      function cardType(card) {
+        return localizedCard(card)?.type || labelValue(typeLabels, card.type);
+      }
+
+      function cardRarity(card) {
+        return localizedCard(card)?.rarity || labelValue(rarityLabels, card.rarity);
+      }
+
+      function colorLabel(color) {
+        return colorLabels[state.lang]?.[color] || color;
+      }
+
+      function costLabel(card) {
+        if (card.is_x_star_cost) return "XS";
+        if (card.is_x_cost) return "X";
+        if (card.cost === -1) return "U";
+        if (card.star_cost) return `${card.cost}/${card.star_cost}S`;
+        return String(card.cost);
+      }
+
+      function cardSlug(card) {
+        const image = card.image_url || "";
+        return image.split("/").pop()?.replace(/\.(webp|png|jpg|jpeg)$/i, "") || card.id.toLowerCase();
+      }
+
+      function cardUrl(card) {
+        const prefix = state.lang === "es" ? "/spa" : "";
+        return `${IMAGE_BASE}${prefix}/cards/${cardSlug(card)}`;
+      }
+
+      function compactList(value) {
+        if (!value) return "";
+        if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+        return String(value);
+      }
+
+      function statRows(card) {
+        return [
+          [t("class"), colorLabel(card.color)],
+          [t("type"), cardType(card)],
+          [t("rarity"), cardRarity(card)],
+          [t("cost"), costLabel(card)],
+          [t("target"), card.target],
+          [t("damage"), card.damage],
+          [t("block"), card.block],
+          [t("hits"), card.hit_count],
+          [t("draw"), card.cards_draw],
+          [t("energy"), card.energy_gain],
+          [t("hp"), card.hp_loss],
+          [t("generatedCards"), compactList(card.spawns_cards)],
+          [t("keywords"), compactList(card.keywords)],
+        ].filter(([, value]) => value !== null && value !== undefined && value !== "");
+      }
+
+      function buildAdviceHtml(card) {
+        const matches = findCardBuildMatches(card, true);
+        if (!matches.length) {
+          return `<section class="build-advice"><h3>${escapeHtml(t("buildAdviceTitle"))}</h3><p class="empty-builds">${escapeHtml(t("buildAdviceEmpty"))}</p></section>`;
+        }
+
+        const classAccents = {
+          ironclad: "#d65a45",
+          silent: "#46a96f",
+          defect: "#4d8be8",
+          regent: "#d88b35",
+          necrobinder: "#9d68d8",
+        };
+
+        return `
+          <section class="build-advice">
+            <div class="section-heading-row">
+              <h3>${escapeHtml(t("buildAdviceTitle"))}</h3>
+              <span>${matches.filter((match) => match.section !== "avoid").length} ${escapeHtml(t("buildsFound"))}</span>
+            </div>
+            <div class="build-match-list">
+              ${matches
+                .map(
+                  (match) => {
+                    const accent = classAccents[match.guide.slug] || "var(--gold)";
+                    const isAvoid = match.section === "avoid";
+                    return `
+                      <article class="build-match ${isAvoid ? "is-warning" : ""}" style="--match-accent: ${accent}">
+                        <div class="build-match-top">
+                          <div>
+                            <strong>${escapeHtml(match.build.name)}</strong>
+                            <small>${escapeHtml(match.guide.name)} · ${escapeHtml(match.build.label)}</small>
+                          </div>
+                          <span>${escapeHtml(t(match.roleKey))}</span>
+                        </div>
+                        <p>${escapeHtml(sectionReason(match.section, match.build))}</p>
+                        <p><b>${escapeHtml(t("buildWhy"))}:</b> ${escapeHtml(match.build.goal)}</p>
+                      </article>
+                    `;
+                  }
+                )
+                .join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderDialog(card) {
+        const name = cardName(card);
+        const englishHint = state.lang === "es" && name !== card.name ? card.name : "";
+        const localizedHint = state.lang === "en" && card.localized?.es?.name ? card.localized.es.name : "";
+        const upgrade = cleanText(cardUpgradeDescription(card));
+        const description = cleanText(cardDescription(card)) || t("noDescription");
+        els.dialogBody.innerHTML = `
+          <div class="dialog-art">
+            <img src="${normalizeUrl(card.image_url)}" alt="${escapeHtml(name)}" />
+          </div>
+          <div class="dialog-copy">
+            <div class="dialog-title-row">
+              <div>
+                <p class="eyebrow">${escapeHtml(colorLabel(card.color))}</p>
+                <h2>${escapeHtml(name)}</h2>
+                ${englishHint ? `<small>${escapeHtml(t("englishName"))}: ${escapeHtml(englishHint)}</small>` : ""}
+                ${localizedHint ? `<small>${escapeHtml(t("englishName"))}: ${escapeHtml(localizedHint)}</small>` : ""}
+              </div>
+              <b>${escapeHtml(costLabel(card))}</b>
+            </div>
+            <div class="meta-row">
+              <span>${escapeHtml(cardType(card))}</span>
+              <span>${escapeHtml(cardRarity(card))}</span>
+              <span>${escapeHtml(colorLabel(card.color))}</span>
+            </div>
+            <section class="text-block">
+              <h3>${escapeHtml(t("baseDescription"))}</h3>
+              <p>${escapeHtml(description)}</p>
+            </section>
+            ${
+              upgrade
+                ? `<section class="text-block"><h3>${escapeHtml(t("upgradeDescription"))}</h3><p>${escapeHtml(upgrade)}</p></section>`
+                : ""
+            }
+            <section class="stat-block">
+              <h3>${escapeHtml(t("stats"))}</h3>
+              <div class="stat-grid">
+                ${statRows(card)
+                  .map(([label, value]) => `<span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong>`)
+                  .join("")}
+              </div>
+            </section>
+            ${buildAdviceHtml(card)}
+            <a class="source-button" href="${cardUrl(card)}" target="_blank" rel="noreferrer">${escapeHtml(t("source"))}</a>
+          </div>
+        `;
+      }
+
+      function openCardDialog(card) {
+        state.activeCardId = card.id;
+        renderDialog(card);
+        if (typeof els.cardDialog.showModal === "function") {
+          els.cardDialog.showModal();
+        } else {
+          els.cardDialog.setAttribute("open", "");
+        }
+      }
+
+      function optionHtml(value, label) {
+        return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+      }
+
+      function uniqueValues(key, order = []) {
+        const values = [...new Set(allCards.map((card) => card[key]).filter(Boolean))];
+        return values.sort((a, b) => {
+          const ai = order.indexOf(a);
+          const bi = order.indexOf(b);
+          if (ai !== -1 || bi !== -1) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+          return String(a).localeCompare(String(b));
+        });
+      }
+
+      function renderSelects() {
+        const colors = uniqueValues("color", colorOrder);
+        const types = uniqueValues("type", typeOrder);
+        const rarities = uniqueValues("rarity", rarityOrder);
+        const costs = [...new Set(allCards.map(costLabel))].sort((a, b) => {
+          const ai = costOrder.indexOf(a);
+          const bi = costOrder.indexOf(b);
+          if (ai !== -1 || bi !== -1) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+          return a.localeCompare(b);
+        });
+
+        els.classFilter.innerHTML = optionHtml("all", t("all")) + colors.map((color) => optionHtml(color, colorLabel(color))).join("");
+        els.typeFilter.innerHTML = optionHtml("all", t("all")) + types.map((type) => optionHtml(type, labelValue(typeLabels, type))).join("");
+        els.rarityFilter.innerHTML = optionHtml("all", t("all")) + rarities.map((rarity) => optionHtml(rarity, labelValue(rarityLabels, rarity))).join("");
+        els.costFilter.innerHTML = optionHtml("all", t("all")) + costs.map((cost) => optionHtml(cost, cost)).join("");
+
+        els.classFilter.value = state.color;
+        els.typeFilter.value = state.type;
+        els.rarityFilter.value = state.rarity;
+        els.costFilter.value = state.cost;
+      }
+
+      function matchesQuery(card, query) {
+        if (!query) return true;
+        const es = card.localized?.es || {};
+        return fold(
+          `${card.name} ${card.description} ${card.type} ${card.rarity} ${card.color} ${es.name || ""} ${es.description || ""} ${es.type || ""} ${es.rarity || ""} ${cardName(card)} ${cardDescription(card)} ${cardType(card)} ${cardRarity(card)} ${colorLabel(card.color)} ${buildSearchText(card)}`
+        ).includes(query);
+      }
+
+      function filteredCards() {
+        const query = fold(state.query);
+        return allCards
+          .filter((card) => state.color === "all" || card.color === state.color)
+          .filter((card) => state.type === "all" || card.type === state.type)
+          .filter((card) => state.rarity === "all" || card.rarity === state.rarity)
+          .filter((card) => state.cost === "all" || costLabel(card) === state.cost)
+          .filter((card) => matchesQuery(card, query))
+          .sort((a, b) => {
+            const colorDiff = colorOrder.indexOf(a.color) - colorOrder.indexOf(b.color);
+            if (colorDiff) return colorDiff;
+            return (a.compendium_order || 0) - (b.compendium_order || 0);
+          });
+      }
+
+      function renderStaticText() {
+        document.documentElement.lang = state.lang;
+        els.pageTitle.textContent = t("pageTitle");
+        els.summaryKicker.textContent = t("summaryKicker");
+        els.summaryTitle.textContent = t("summaryTitle");
+        els.searchLabel.textContent = t("search");
+        els.searchInput.placeholder = t("searchPlaceholder");
+        els.classLabel.textContent = t("class");
+        els.typeLabel.textContent = t("type");
+        els.rarityLabel.textContent = t("rarity");
+        els.costLabel.textContent = t("cost");
+        els.resetButton.textContent = t("reset");
+        els.dialogClose.setAttribute("aria-label", t("close"));
+        els.langToggle.querySelectorAll("button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === state.lang);
+          button.setAttribute("aria-pressed", String(button.dataset.lang === state.lang));
+        });
+      }
+
+      function renderBuildSearchPanel(cards) {
+        const hasSearch = state.query.trim().length > 0;
+        if (!hasSearch) {
+          els.buildSearchPanel.hidden = true;
+          els.buildSearchPanel.innerHTML = "";
+          return;
+        }
+
+        const cardsWithBuilds = cards
+          .map((card) => ({ card, matches: findCardBuildMatches(card) }))
+          .filter(({ matches }) => matches.length)
+          .slice(0, 12);
+
+        els.buildSearchPanel.hidden = false;
+        if (!cardsWithBuilds.length) {
+          els.buildSearchPanel.innerHTML = `
+            <div class="build-search-head">
+              <div>
+                <p class="eyebrow">${escapeHtml(t("buildSearchTitle"))}</p>
+                <h2>${escapeHtml(state.query)}</h2>
+              </div>
+            </div>
+            <p class="empty-builds">${escapeHtml(t("buildSearchEmpty"))}</p>
+          `;
+          return;
+        }
+
+        const buildGroups = new Map();
+        cardsWithBuilds.forEach(({ card, matches }) => {
+          matches.forEach((match) => {
+            const key = `${match.guide.name}::${match.build.id}`;
+            if (!buildGroups.has(key)) {
+              buildGroups.set(key, { guide: match.guide, build: match.build, cardEntries: [] });
+            }
+            buildGroups.get(key).cardEntries.push({ card, roleKey: match.roleKey, section: match.section });
+          });
+        });
+
+        const totalMatches = cardsWithBuilds.reduce((total, item) => total + item.matches.length, 0);
+
+        els.buildSearchPanel.innerHTML = `
+          <div class="build-search-head">
+            <div>
+              <p class="eyebrow">${escapeHtml(t("buildSearchTitle"))}</p>
+              <h2>${escapeHtml(state.query)}</h2>
+            </div>
+            <span>${totalMatches} ${escapeHtml(t("buildsFound"))}</span>
+          </div>
+          <p class="build-search-hint">${escapeHtml(t("buildSearchHint"))}</p>
+          <div class="build-grouped-section">
+            <h3 class="section-subtitle">${escapeHtml(t("buildGroupedTitle"))}</h3>
+            <div class="build-grouped-grid">
+              ${[...buildGroups.values()]
+                .map(
+                  ({ guide, build, cardEntries }) => `
+                    <article class="build-group-card color-${escapeHtml(guide.slug)}">
+                      <div class="build-group-header">
+                        <strong>${escapeHtml(build.name)}</strong>
+                        <small>${escapeHtml(guide.name)} · ${escapeHtml(build.label)}</small>
+                      </div>
+                      <p class="build-group-goal">${escapeHtml(build.goal)}</p>
+                      <div class="build-group-cards">
+                        ${cardEntries
+                          .map(
+                            ({ card, roleKey, section }) => `
+                              <div class="build-group-entry role-${section}">
+                                <span>${escapeHtml(cardName(card))}</span>
+                                <b>${escapeHtml(t(roleKey))}</b>
+                              </div>
+                            `
+                          )
+                          .join("")}
+                      </div>
+                    </article>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>
+          <div class="build-card-section">
+            <h3 class="section-subtitle">${escapeHtml(t("buildCardSection"))}</h3>
+            <div class="build-search-grid">
+              ${cardsWithBuilds
+                .map(
+                  ({ card, matches }) => `
+                    <article class="build-search-card color-${escapeHtml(card.color)}">
+                      <div class="build-search-card-title">
+                        <strong>${escapeHtml(cardName(card))}</strong>
+                        <small>${escapeHtml(card.name)}</small>
+                      </div>
+                      <div class="build-search-matches">
+                        ${matches
+                          .slice(0, 5)
+                          .map(
+                            (match) => `
+                              <div>
+                                <b>${escapeHtml(match.build.name)}</b>
+                                <span>${escapeHtml(match.guide.name)} · ${escapeHtml(t(match.roleKey))}</span>
+                              </div>
+                            `
+                          )
+                          .join("")}
+                      </div>
+                    </article>
+                  `
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderCards() {
+        const cards = filteredCards();
+        const sources = new Set(allCards.map((card) => card.color)).size;
+        els.summaryStats.innerHTML = `
+          <span>${allCards.length} ${t("total")}</span>
+          <span>${cards.length} ${t("shown")}</span>
+          <span>${sources} ${t("classes")}</span>
+        `;
+        els.resultsText.textContent = cards.length ? `${cards.length} ${resultWord(cards.length)}` : t("noResults");
+        renderBuildSearchPanel(cards);
+
+        els.cardsGrid.innerHTML = cards
+          .map((card) => {
+            const name = cardName(card);
+            const englishHint = state.lang === "es" && name !== card.name ? card.name : "";
+            return `
+              <button class="catalog-card color-${escapeHtml(card.color)}" type="button" data-card-id="${escapeHtml(card.id)}" aria-label="${escapeHtml(`${t("details")}: ${name}`)}">
+                <div class="art-wrap">
+                  <img src="${normalizeUrl(card.image_url)}" alt="${escapeHtml(name)}" loading="lazy" />
+                </div>
+                <div class="card-copy">
+                  <div class="card-title-row">
+                    <h3>${escapeHtml(name)}</h3>
+                    <b>${escapeHtml(costLabel(card))}</b>
+                  </div>
+                  ${englishHint ? `<small>${escapeHtml(englishHint)}</small>` : ""}
+                  <div class="meta-row">
+                    <span>${escapeHtml(colorLabel(card.color))}</span>
+                    <span>${escapeHtml(cardType(card))}</span>
+                    <span>${escapeHtml(cardRarity(card))}</span>
+                  </div>
+                  <p>${escapeHtml(cleanText(cardDescription(card)))}</p>
+                  ${buildBadgesHtml(card)}
+                </div>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function renderAll() {
+        renderStaticText();
+        renderSelects();
+        renderCards();
+      }
+
+      els.langToggle.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-lang]");
+        if (!button) return;
+        state.lang = button.dataset.lang;
+        localStorage.setItem("sts2-lang", state.lang);
+        renderAll();
+        if (els.cardDialog.open && state.activeCardId) {
+          const card = cardById(state.activeCardId);
+          if (card) renderDialog(card);
+        }
+      });
+
+      els.cardsGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-card-id]");
+        if (!button) return;
+        const card = cardById(button.dataset.cardId);
+        if (card) openCardDialog(card);
+      });
+
+      els.dialogClose.addEventListener("click", () => {
+        els.cardDialog.close();
+        state.activeCardId = null;
+      });
+
+      els.cardDialog.addEventListener("click", (event) => {
+        if (event.target === els.cardDialog) {
+          els.cardDialog.close();
+          state.activeCardId = null;
+        }
+      });
+
+      els.cardDialog.addEventListener("close", () => {
+        state.activeCardId = null;
+      });
+
+      els.searchInput.addEventListener("input", () => {
+        state.query = els.searchInput.value;
+        renderCards();
+      });
+
+      els.classFilter.addEventListener("change", () => {
+        state.color = els.classFilter.value;
+        renderCards();
+      });
+
+      els.typeFilter.addEventListener("change", () => {
+        state.type = els.typeFilter.value;
+        renderCards();
+      });
+
+      els.rarityFilter.addEventListener("change", () => {
+        state.rarity = els.rarityFilter.value;
+        renderCards();
+      });
+
+      els.costFilter.addEventListener("change", () => {
+        state.cost = els.costFilter.value;
+        renderCards();
+      });
+
+      els.resetButton.addEventListener("click", () => {
+        state.query = "";
+        state.color = "all";
+        state.type = "all";
+        state.rarity = "all";
+        state.cost = "all";
+        els.searchInput.value = "";
+        renderAll();
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #11100f;
+    --surface: #191917;
+    --surface-2: #22201d;
+    --surface-3: #2b2924;
+    --text: #f0eee8;
+    --muted: #bdb6a8;
+    --soft: #8d8678;
+    --line: #3a352f;
+    --line-bright: rgba(217, 178, 99, 0.28);
+    --gold: #d9b263;
+    --ironclad: #d65a45;
+    --silent: #46a96f;
+    --defect: #4d8be8;
+    --regent: #d88b35;
+    --necrobinder: #9d68d8;
+    --colorless: #c9b78d;
+    --curse: #8f7a9f;
+    color-scheme: dark;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(217, 178, 99, 0.13), transparent 28rem),
+      radial-gradient(circle at 88% 0%, rgba(77, 139, 232, 0.12), transparent 26rem),
+      radial-gradient(circle at 50% 100%, rgba(157, 104, 216, 0.06), transparent 40rem),
+      linear-gradient(90deg, rgba(157, 104, 216, 0.08), transparent 34%, rgba(70, 169, 111, 0.05)),
+      linear-gradient(180deg, rgba(217, 178, 99, 0.06), transparent 330px),
+      var(--bg);
+    color: var(--text);
+    letter-spacing: 0;
+    overflow-x: hidden;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 78px;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--line-bright);
+    background: rgba(17, 16, 15, 0.82);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(18px);
+  }
+
+  .topbar h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  .topbar h1 {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .home-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+  }
+
+  .topbar-center {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .nav-link,
+  .reset-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .nav-link:hover,
+  .reset-button:hover {
+    border-color: var(--gold);
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+  }
+
+  .lang-toggle button {
+    min-width: 38px;
+    min-height: 30px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .lang-toggle button.active {
+    background: var(--gold);
+    color: #18130a;
+  }
+
+  .eyebrow {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .source-line {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .source-line a {
+    color: var(--gold);
+  }
+
+  .catalog-shell {
+    display: grid;
+    gap: 18px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .catalog-summary,
+  .filter-band,
+  .results-heading,
+  .build-search-panel {
+    border: 1px solid var(--line-bright);
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 40%),
+      rgba(25, 25, 23, 0.9);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+  }
+
+  .catalog-summary {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .catalog-summary h2 {
+    margin-top: 6px;
+    max-width: 760px;
+    font-size: clamp(32px, 5vw, 58px);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stats-row span {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(16, 15, 14, 0.76);
+    color: var(--muted);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .filter-band {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.4fr) minmax(140px, 0.7fr) minmax(130px, 0.6fr) minmax(130px, 0.6fr) 100px 100px;
+    align-items: end;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .field span {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(16, 15, 14, 0.86);
+    color: var(--text);
+    padding: 0 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--gold);
+    outline: 2px solid rgba(217, 178, 99, 0.18);
+  }
+
+  .reset-button {
+    min-height: 42px;
+  }
+
+  .results-heading {
+    padding: 12px 14px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .build-search-panel {
+    display: grid;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .build-search-panel[hidden] {
+    display: none;
+  }
+
+  .build-search-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .build-search-head h2 {
+    margin-top: 4px;
+    font-size: clamp(24px, 3vw, 38px);
+    line-height: 1;
+    overflow-wrap: anywhere;
+    background: linear-gradient(135deg, var(--text), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .build-search-head > span {
+    flex: 0 0 auto;
+    border: 1px solid var(--line-bright);
+    border-radius: 999px;
+    background: rgba(217, 178, 99, 0.1);
+    color: var(--gold);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .build-search-hint {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .build-search-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+  }
+
+  .build-search-card {
+    display: grid;
+    gap: 10px;
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 34%, var(--line));
+    border-radius: 14px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 12%, transparent), transparent 44%),
+      rgba(16, 15, 14, 0.78);
+    padding: 12px;
+  }
+
+  .build-search-card-title strong {
+    display: block;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .build-search-card-title small {
+    display: block;
+    margin-top: 4px;
+    color: var(--soft);
+    font-size: 12px;
+  }
+
+  .build-search-matches {
+    display: grid;
+    gap: 6px;
+  }
+
+  .build-search-matches div {
+    display: grid;
+    gap: 2px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 7px;
+  }
+
+  .build-search-matches b {
+    color: var(--gold);
+    font-size: 13px;
+  }
+
+  .build-search-matches span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .build-grouped-section,
+  .build-card-section {
+    display: grid;
+    gap: 10px;
+  }
+
+  .build-grouped-section {
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-subtitle {
+    color: var(--gold);
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .build-grouped-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+  }
+
+  .build-group-card {
+    display: grid;
+    gap: 8px;
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 34%, var(--line));
+    border-radius: 14px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 14%, transparent), transparent 44%),
+      rgba(16, 15, 14, 0.78);
+    padding: 14px;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+
+  .build-group-card:hover {
+    border-color: color-mix(in srgb, var(--card-accent, var(--gold)) 65%, var(--line));
+    transform: translateY(-2px);
+  }
+
+  .build-group-header strong {
+    display: block;
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1.15;
+  }
+
+  .build-group-header small {
+    display: block;
+    margin-top: 3px;
+    color: var(--soft);
+    font-size: 12px;
+  }
+
+  .build-group-goal {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .build-group-cards {
+    display: grid;
+    gap: 5px;
+  }
+
+  .build-group-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 6px;
+  }
+
+  .build-group-entry span {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .build-group-entry b {
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .build-group-entry.role-core b {
+    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
+    background: color-mix(in srgb, #61b57c 16%, #100f0e);
+    color: #8eddab;
+  }
+
+  .build-group-entry.role-enablers b {
+    border: 1px solid color-mix(in srgb, #6aa3ee 55%, var(--line));
+    background: color-mix(in srgb, #6aa3ee 16%, #100f0e);
+    color: #9dc4f7;
+  }
+
+  .build-group-entry.role-payoffs b {
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+    background: color-mix(in srgb, var(--gold) 16%, #100f0e);
+    color: var(--gold);
+  }
+
+  .build-group-entry.role-safePicks b {
+    border: 1px solid var(--line);
+    background: rgba(16, 15, 14, 0.72);
+    color: var(--muted);
+  }
+
+  .build-group-entry.role-avoid b {
+    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
+    background: color-mix(in srgb, #df6a58 16%, #100f0e);
+    color: #f0968a;
+  }
+
+  .build-card-section {
+    padding-top: 14px;
+  }
+
+  .catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .catalog-card {
+    display: grid;
+    grid-template-rows: 176px 1fr;
+    overflow: hidden;
+    width: 100%;
+    padding: 0;
+    min-height: 390px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 42%),
+      var(--surface);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.2);
+    transition:
+      border-color 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .catalog-card:hover {
+    border-color: var(--card-accent, var(--gold));
+    box-shadow:
+      0 22px 44px rgba(0, 0, 0, 0.34),
+      0 0 0 3px color-mix(in srgb, var(--card-accent, var(--gold)) 18%, transparent),
+      0 0 28px color-mix(in srgb, var(--card-accent, var(--gold)) 10%, transparent);
+    transform: translateY(-4px);
+  }
+
+  .color-ironclad {
+    --card-accent: var(--ironclad);
+  }
+
+  .color-silent {
+    --card-accent: var(--silent);
+  }
+
+  .color-defect {
+    --card-accent: var(--defect);
+  }
+
+  .color-regent {
+    --card-accent: var(--regent);
+  }
+
+  .color-necrobinder {
+    --card-accent: var(--necrobinder);
+  }
+
+  .color-colorless,
+  .color-event,
+  .color-token,
+  .color-status,
+  .color-quest {
+    --card-accent: var(--colorless);
+  }
+
+  .color-curse {
+    --card-accent: var(--curse);
+  }
+
+  .art-wrap {
+    display: grid;
+    place-items: center;
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 18%, transparent), transparent 55%),
+      #0c0b0a;
+  }
+
+  .art-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+  }
+
+  .card-copy {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .card-title-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 8px;
+  }
+
+  .card-title-row h3 {
+    display: block;
+    width: 100%;
+    overflow: visible;
+    color: var(--text);
+    font-size: clamp(17px, 1.35vw, 22px);
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    hyphens: auto;
+  }
+
+  .card-title-row b {
+    display: inline-grid;
+    place-items: center;
+    justify-self: start;
+    min-width: 32px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--card-accent, var(--surface-3));
+    color: #fff;
+    font-size: 12px;
+  }
+
+  .card-copy small {
+    color: var(--soft);
+    font-size: 12px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .meta-row span {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100f0e;
+    color: var(--muted);
+    padding: 4px 7px;
+    font-size: 12px;
+  }
+
+  .card-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+
+  .card-build-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .build-badge {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .build-badge.role-core {
+    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
+    background: color-mix(in srgb, #61b57c 16%, #100f0e);
+    color: #8eddab;
+  }
+
+  .build-badge.role-enablers {
+    border: 1px solid color-mix(in srgb, #6aa3ee 55%, var(--line));
+    background: color-mix(in srgb, #6aa3ee 16%, #100f0e);
+    color: #9dc4f7;
+  }
+
+  .build-badge.role-payoffs {
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+    background: color-mix(in srgb, var(--gold) 16%, #100f0e);
+    color: var(--gold);
+  }
+
+  .build-badge.role-safePicks {
+    border: 1px solid var(--line);
+    background: rgba(16, 15, 14, 0.72);
+    color: var(--muted);
+  }
+
+  .build-badge.role-avoid {
+    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
+    background: color-mix(in srgb, #df6a58 16%, #100f0e);
+    color: #f0968a;
+  }
+
+  .detail-chip {
+    justify-self: start;
+    margin-top: 2px;
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 55%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--card-accent, var(--gold)) 12%, #100f0e);
+    color: var(--text);
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .card-dialog {
+    width: min(1120px, calc(100vw - 32px));
+    max-height: min(860px, calc(100vh - 32px));
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58);
+  }
+
+  .card-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+  }
+
+  .dialog-panel {
+    position: relative;
+    max-height: inherit;
+    overflow: auto;
+  }
+
+  .dialog-close {
+    position: sticky;
+    top: 12px;
+    z-index: 2;
+    float: right;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    margin: 12px 12px 0 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .dialog-body {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+    gap: 22px;
+    padding: 22px;
+  }
+
+  .dialog-art {
+    display: grid;
+    place-items: center;
+    align-self: start;
+    min-height: 420px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0c0b0a;
+  }
+
+  .dialog-art img {
+    width: 100%;
+    max-height: 620px;
+    object-fit: contain;
+    padding: 10px;
+  }
+
+  .dialog-copy {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    min-width: 0;
+    padding-right: 8px;
+  }
+
+  .dialog-title-row {
+    display: grid;
+    grid-template-columns: 1fr 44px;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .dialog-title-row h2 {
+    margin-top: 5px;
+    font-size: 34px;
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .dialog-title-row small {
+    display: block;
+    margin-top: 8px;
+    color: var(--soft);
+  }
+
+  .dialog-title-row b {
+    display: inline-grid;
+    place-items: center;
+    min-width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--gold);
+    color: #18130a;
+    font-size: 18px;
+  }
+
+  .text-block,
+  .stat-block {
+    display: grid;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .text-block h3,
+  .stat-block h3 {
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  .text-block p {
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.45fr) minmax(0, 1fr);
+    gap: 8px 12px;
+  }
+
+  .stat-grid span {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .stat-grid strong {
+    color: var(--muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .build-advice {
+    display: grid;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .section-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .section-heading-row h3,
+  .build-advice > h3 {
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  .section-heading-row span {
+    border: 1px solid var(--line-bright);
+    border-radius: 999px;
+    background: rgba(217, 178, 99, 0.1);
+    color: var(--gold);
+    padding: 5px 9px;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .build-match-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .build-match {
+    display: grid;
+    gap: 8px;
+    border: 1px solid color-mix(in srgb, var(--match-accent, var(--gold)) 34%, var(--line));
+    border-radius: 14px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--match-accent, var(--gold)) 10%, transparent), transparent 46%),
+      rgba(16, 15, 14, 0.78);
+    padding: 12px;
+    transition: border-color 150ms ease;
+  }
+
+  .build-match:hover {
+    border-color: color-mix(in srgb, var(--match-accent, var(--gold)) 60%, var(--line));
+  }
+
+  .build-match.is-warning {
+    background:
+      linear-gradient(135deg, rgba(216, 91, 69, 0.1), transparent 46%),
+      rgba(16, 15, 14, 0.78);
+  }
+
+  .build-match-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .build-match strong {
+    display: block;
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  .build-match small {
+    display: block;
+    margin-top: 3px;
+    color: var(--soft);
+    font-size: 12px;
+  }
+
+  .build-match-top > span {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .build-match:not(.is-warning) .build-match-top > span {
+    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
+    background: color-mix(in srgb, #61b57c 16%, #100f0e);
+    color: #8eddab;
+  }
+
+  .build-match.is-warning .build-match-top > span {
+    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
+    background: color-mix(in srgb, #df6a58 16%, #100f0e);
+    color: #f0968a;
+  }
+
+  .build-match p,
+  .empty-builds {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .build-match p b {
+    color: var(--text);
+  }
+
+  .source-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  @media (max-width: 1120px) {
+    .filter-band {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .search-field {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .topbar,
+    .topbar-actions,
+    .catalog-summary {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .source-line {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 6px;
+      white-space: normal;
+    }
+
+    .topbar {
+      gap: 10px;
+      padding: 14px 16px;
+    }
+
+    .catalog-shell {
+      padding: 16px;
+    }
+
+    .catalog-summary h2 {
+      font-size: 30px;
+    }
+
+    .filter-band {
+      grid-template-columns: 1fr;
+    }
+
+    .catalog-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card-dialog {
+      width: calc(100vw - 20px);
+      max-height: calc(100vh - 20px);
+    }
+
+    .dialog-body {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .dialog-art {
+      min-height: 280px;
+    }
+
+    .dialog-title-row h2 {
+      font-size: 28px;
+    }
+  }
+</style>

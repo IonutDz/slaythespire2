@@ -1,0 +1,727 @@
+export type BuildMode = "steady" | "break" | "multiplayer";
+
+export type BuildGuide = {
+  id: string;
+  name: string;
+  mode: BuildMode;
+  label: string;
+  goal: string;
+  multiplayerRole: string;
+  earlyPlan: string[];
+  core: string[];
+  enablers: string[];
+  payoffs: string[];
+  safePicks: string[];
+  avoid: string[];
+  upgrades: string[];
+  breakpoints: string[];
+  notes: string[];
+};
+
+export type ClassGuide = {
+  slug: string;
+  name: string;
+  accent: string;
+  identity: string;
+  multiplayerAdvice: string;
+  draftRules: string[];
+  builds: BuildGuide[];
+};
+
+export const buildGuides: Record<string, ClassGuide> = {
+  ironclad: {
+    slug: "ironclad",
+    name: "The Ironclad",
+    accent: "#d65a45",
+    identity: "Dano frontal, Exhaust, Vulnerable, escalado de Fuerza y defensa pesada.",
+    multiplayerAdvice:
+      "En multiplayer puede jugar de carry o de tanque. Es el mejor para absorber presion si encuentra Tank, Demonic Shield, Barricade o bloques enormes.",
+    draftRules: [
+      "Acto 1: coge dano real antes de engines lentos. Bludgeon, Hemokinesis, Cinder, Pommel Strike y Thunderclap arreglan peleas tempranas.",
+      "No mezcles demasiados motores. Exhaust, Vulnerable, HP loss y Barricade piden soportes distintos.",
+      "Si el equipo ya tiene dano, prioriza bloque, Vulnerable y proteccion a aliados.",
+    ],
+    builds: [
+      {
+        id: "ironclad-exhaust",
+        name: "Exhaust Engine",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Convertir el mazo en un motor que roba, bloquea y limpia cartas hasta jugar solo las mejores.",
+        multiplayerRole: "Carry autosuficiente. Tambien habilita turnos largos sin pedir muchos recursos al equipo.",
+        earlyPlan: [
+          "Primeras recompensas: dano barato y una forma de Exhaust controlado.",
+          "No cojas Corruption sin Skills suficientes o sin robo. Es potente, pero si llega sola puede dejarte sin defensa.",
+          "Cuando ya tengas robo y Exhaust, empieza a saltarte cartas medianas para afinar el mazo.",
+        ],
+        core: ["Corruption", "Dark Embrace", "Feel No Pain"],
+        enablers: ["Burning Pact", "True Grit", "Second Wind", "Havoc", "Drum of Battle", "Stoke"],
+        payoffs: ["Fiend Fire", "Pact's End", "Ashen Strike", "Cascade"],
+        safePicks: ["Shrug It Off", "Pommel Strike", "Bloodletting", "Offering", "Armaments"],
+        avoid: ["Perfected Strike", "Barricade", "Demon Form"],
+        upgrades: ["Corruption si baja coste", "True Grit para quitar el azar", "Dark Embrace antes de payoffs caros"],
+        breakpoints: [
+          "Corruption + Dark Embrace: las Skills pasan a ser robo gratis.",
+          "Feel No Pain + Second Wind: defensa explosiva sin gastar ataques.",
+          "Fiend Fire con mano grande: mata elites y jefes antes de que escalen.",
+        ],
+        notes: [
+          "La version rota no es coger todas las cartas de Exhaust, sino tener robo suficiente para no quedarte seco.",
+          "Si el equipo va lento, guarda Fiend Fire o Pact's End para rematar fases peligrosas.",
+        ],
+      },
+      {
+        id: "ironclad-vulnerable",
+        name: "Vulnerable Bruiser",
+        mode: "steady",
+        label: "Jugar bien",
+        goal: "Aplicar Vulnerable de forma constante y convertir ataques normales en burst fiable.",
+        multiplayerRole: "Debuffer de equipo. Hace que los carries fisicos de otros jugadores peguen mucho mas.",
+        earlyPlan: [
+          "Bash mejorado o Thunderclap temprano hacen que todo el equipo escale el dano.",
+          "Coge dos ataques buenos antes de powers raras.",
+          "Busca robo ligero para encadenar Vulnerable con ataques en el mismo turno.",
+        ],
+        core: ["Bash", "Thunderclap", "Uppercut", "Tremble"],
+        enablers: ["Vicious", "Cruelty", "Dominate", "Taunt", "Molten Fist"],
+        payoffs: ["Bully", "Dismantle", "One-Two Punch", "Conflagration", "Whirlwind"],
+        safePicks: ["Pommel Strike", "Shrug It Off", "Twin Strike", "Setup Strike", "Inflame"],
+        avoid: ["Barricade", "Corruption", "Tank"],
+        upgrades: ["Bash para mas Vulnerable", "Thunderclap si necesitas AoE", "Vicious si ya aplicas Vulnerable cada turno"],
+        breakpoints: [
+          "Vicious + Thunderclap: robar mientras debuffas a todos.",
+          "Cruelty + Vulnerable estable: el equipo entero acelera jefes.",
+          "One-Two Punch + ataque pesado: burst para elites.",
+        ],
+        notes: [
+          "Es la linea mas facil de pilotar si no sabes que te va a tocar.",
+          "En multiplayer vale incluso cuando tu propio dano no sea el mayor.",
+        ],
+      },
+      {
+        id: "ironclad-tank",
+        name: "Tanque y Body Slam",
+        mode: "multiplayer",
+        label: "Multiplayer",
+        goal: "Proteger al equipo y convertir defensa en dano con Body Slam o Juggernaut.",
+        multiplayerRole: "Frontliner. Compra turnos para que otros jugadores escalen.",
+        earlyPlan: [
+          "Prioriza bloque eficiente y cartas que protejan aliados.",
+          "No fuerces Body Slam si aun no produces mucho bloque.",
+          "Si aparece Tank, evalua si tu equipo puede aprovechar que tu recibas mas presion.",
+        ],
+        core: ["Tank", "Demonic Shield", "Barricade", "Body Slam"],
+        enablers: ["Impervious", "Flame Barrier", "Blood Wall", "Stone Armor", "Unmovable"],
+        payoffs: ["Juggernaut", "Colossus", "Second Wind", "Rage"],
+        safePicks: ["Shrug It Off", "True Grit", "Armaments", "Iron Wave", "Not Yet"],
+        avoid: ["Rupture", "Inferno", "Tear Asunder"],
+        upgrades: ["Barricade si baja coste", "Body Slam a coste 0", "Demonic Shield si el equipo depende de ti"],
+        breakpoints: [
+          "Barricade + Impervious: turnos de jefe muy faciles.",
+          "Tank + Demonic Shield: rediriges presion y das bloque real a aliados.",
+          "Juggernaut + muchas fuentes pequenas de bloque: dano gratis mientras defiendes.",
+        ],
+        notes: [
+          "No necesitas ser el mayor dano de la lobby. Necesitas que nadie muera antes del turno fuerte.",
+          "Coordina Tank con aliados fragiles: si no pueden capitalizar el tiempo, el coste es alto.",
+        ],
+      },
+      {
+        id: "ironclad-hp-loss",
+        name: "HP Loss Fuerza",
+        mode: "break",
+        label: "Alto riesgo",
+        goal: "Perder vida de forma controlada para ganar Fuerza y disparar dano masivo.",
+        multiplayerRole: "Carry explosivo. Pide apoyo defensivo o curacion indirecta del equipo.",
+        earlyPlan: [
+          "No cojas todas las cartas que pierden HP: necesitas control y recuperacion.",
+          "Bloodletting y Offering son mejores cuando ya tienes forma de gastar la energia.",
+          "Rupture cambia la prioridad: cada perdida propia en tu turno pasa a ser escalado.",
+        ],
+        core: ["Rupture", "Bloodletting", "Offering"],
+        enablers: ["Hemokinesis", "Brand", "Crimson Mantle", "Inferno", "Breakthrough"],
+        payoffs: ["Spite", "Tear Asunder", "Fiend Fire", "Demon Form", "Whirlwind"],
+        safePicks: ["Not Yet", "Shrug It Off", "Flame Barrier", "Pommel Strike"],
+        avoid: ["Tank", "Barricade", "Grand Finale"],
+        upgrades: ["Rupture", "Bloodletting", "Offering si el upgrade mejora draw o energia"],
+        breakpoints: [
+          "Rupture + Bloodletting: energia y Fuerza en el mismo boton.",
+          "Inferno + perdidas repetidas: limpia grupos.",
+          "Tear Asunder despues de varias perdidas: escala como finisher.",
+        ],
+        notes: [
+          "En multiplayer avisa antes de bajar mucho tu HP; puedes obligar al equipo a defenderte.",
+          "Si la lobby no tiene soporte, juega esta build como burst y no como sacrificio infinito.",
+        ],
+      },
+    ],
+  },
+
+  silent: {
+    slug: "silent",
+    name: "The Silent",
+    accent: "#46a96f",
+    identity: "Poison, Shiv, descarte, robo y mitigacion con Weak, Intangible o Dexterity.",
+    multiplayerAdvice:
+      "En equipo destaca como debuffer y carry de turnos largos. Poison gana jefes, Shiv gana salas, Flanking y Weak multiplican dano aliado.",
+    draftRules: [
+      "Acto 1: necesitas dano inmediato. Blade Dance, Dagger Spray, Dash, Predator y Poisoned Stab son picks solidos.",
+      "Poison y Shiv compiten por slots de power. Elige una base y usa la otra solo como puente.",
+      "Descartar sin payoffs es solo filtrado; con Tactician, Reflex o Tools of the Trade se vuelve motor.",
+    ],
+    builds: [
+      {
+        id: "silent-poison",
+        name: "Poison Boss Killer",
+        mode: "steady",
+        label: "Jugar bien",
+        goal: "Aplicar Poison cada turno y duplicar sus disparos hasta que jefes y elites caigan solos.",
+        multiplayerRole: "Carry de jefes. El equipo te cubre salas rapidas y tu resuelves combates largos.",
+        earlyPlan: [
+          "Deadly Poison y Poisoned Stab son suficientes para arrancar.",
+          "Coge defensa real: Poison tarda en cerrar peleas.",
+          "Si aparece Accelerant, empieza a priorizar aplicadores por encima de ataques medianos.",
+        ],
+        core: ["Deadly Poison", "Bouncing Flask", "Noxious Fumes", "Accelerant"],
+        enablers: ["Haze", "Snakebite", "Bubble Bubble", "Envenom", "Outbreak"],
+        payoffs: ["Corrosive Wave", "Mirage", "Malaise", "The Hunt"],
+        safePicks: ["Backflip", "Leg Sweep", "Piercing Wail", "Blur", "Footwork"],
+        avoid: ["Grand Finale", "Accuracy", "Storm of Steel"],
+        upgrades: ["Noxious Fumes", "Bouncing Flask", "Accelerant", "Leg Sweep"],
+        breakpoints: [
+          "Accelerant + Noxious Fumes: Poison se dispara cada turno.",
+          "Corrosive Wave + robo: AoE enorme sin gastar ataques.",
+          "Mirage con Poison alto: defensa de jefe en un boton.",
+        ],
+        notes: [
+          "No necesitas muchas copias de cada aplicador. Necesitas sobrevivir hasta que el veneno haga su trabajo.",
+          "En multiplayer, Poison sigue funcionando aunque otros jugadores cambien de objetivo.",
+        ],
+      },
+      {
+        id: "silent-shiv",
+        name: "Shiv Storm",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Crear muchas Shivs, hacer que escalen y convertir cada carta jugada en dano o bloque.",
+        multiplayerRole: "Carry de salas y burst. Muy bueno cuando otros aplican Vulnerable o debuffs.",
+        earlyPlan: [
+          "Blade Dance y Cloak and Dagger son picks tempranos premium.",
+          "No llenes el mazo de generadores sin Accuracy, Afterimage, Fan of Knives o algun payoff.",
+          "Busca soluciones para enemigos multiples antes de depender solo de single target.",
+        ],
+        core: ["Blade Dance", "Accuracy", "Afterimage"],
+        enablers: ["Cloak and Dagger", "Infinite Blades", "Phantom Blades", "Blade of Ink", "Up My Sleeve"],
+        payoffs: ["Fan of Knives", "Knife Trap", "Finisher", "Storm of Steel", "Envenom", "Strangle"],
+        safePicks: ["Backflip", "Prepared", "Acrobatics", "Deflect", "Well-Laid Plans"],
+        avoid: ["Grand Finale", "Bouncing Flask", "Tools of the Trade"],
+        upgrades: ["Accuracy", "Blade Dance", "Afterimage", "Fan of Knives si baja coste"],
+        breakpoints: [
+          "Accuracy + multiples Shivs: el dano base se dispara.",
+          "Afterimage + muchas cartas 0: bloque mientras atacas.",
+          "Fan of Knives + Shivs: limpias AoE sin perder presion al jefe.",
+        ],
+        notes: [
+          "La build se rompe cuando cada Shiv hace dos trabajos: dano, Poison, bloque o AoE.",
+          "Pide a aliados Vulnerable o Weak; tus muchos hits aprovechan muy bien los debuffs.",
+        ],
+      },
+      {
+        id: "silent-discard",
+        name: "Discard Draw Engine",
+        mode: "break",
+        label: "Motor",
+        goal: "Robar, descartar y convertir cartas descartadas en energia, robo o dano.",
+        multiplayerRole: "Carry tecnico. Puede encontrar respuestas concretas en turnos clave.",
+        earlyPlan: [
+          "Acrobatics y Dagger Throw son buenos incluso sin payoffs.",
+          "Reflex y Tactician solo suben mucho cuando ya descartas de forma fiable.",
+          "Calculated Gamble es una carta de engine, no solo un mulligan.",
+        ],
+        core: ["Acrobatics", "Calculated Gamble", "Tools of the Trade"],
+        enablers: ["Prepared", "Dagger Throw", "Survivor", "Reflex", "Tactician"],
+        payoffs: ["Memento Mori", "Murder", "Speedster", "Bullet Time", "Nightmare"],
+        safePicks: ["Backflip", "Footwork", "Escape Plan", "Deflect", "Expertise"],
+        avoid: ["Grand Finale", "Skewer", "Bouncing Flask"],
+        upgrades: ["Calculated Gamble", "Acrobatics", "Prepared", "Tools of the Trade"],
+        breakpoints: [
+          "Tools of the Trade + Reflex/Tactician: valor gratis cada turno.",
+          "Calculated Gamble con mano grande: reinicia turnos malos.",
+          "Bullet Time despues de robar mucho: convierte mano llena en turno explosivo.",
+        ],
+        notes: [
+          "Cuanto mas motor tengas, mas valor tiene quitar Strikes y Defends.",
+          "No sacrifiques toda la defensa por robo; la build necesita tiempo para encontrar sus piezas.",
+        ],
+      },
+      {
+        id: "silent-support",
+        name: "Weak y Control",
+        mode: "multiplayer",
+        label: "Multiplayer",
+        goal: "Reducir dano enemigo, abrir ventanas de burst y sostener al equipo.",
+        multiplayerRole: "Soporte defensivo y debuffer. Hace que carries lentos lleguen vivos a su turno fuerte.",
+        earlyPlan: [
+          "Leg Sweep y Piercing Wail son picks de equipo excelentes.",
+          "Flanking es muy fuerte si tus aliados pegan duro ese turno.",
+          "Prioriza consistencia: retener una carta clave vale mas que otro ataque medio.",
+        ],
+        core: ["Leg Sweep", "Piercing Wail", "Malaise", "Flanking"],
+        enablers: ["Expose", "Tracking", "Sneaky", "Well-Laid Plans", "Blur"],
+        payoffs: ["Wraith Form", "Shadowmeld", "Footwork", "Afterimage"],
+        safePicks: ["Backflip", "Survivor", "Neutralize", "Sucker Punch", "Untouchable"],
+        avoid: ["Grand Finale", "Accuracy", "Knife Trap"],
+        upgrades: ["Leg Sweep", "Malaise", "Well-Laid Plans", "Wraith Form"],
+        breakpoints: [
+          "Flanking + aliado con burst: multiplica el turno del equipo.",
+          "Malaise contra jefe multi-hit: reduce el combate entero.",
+          "Wraith Form + retencion: compra turnos decisivos.",
+        ],
+        notes: [
+          "Tu dano puede parecer bajo, pero un buen turno de Flanking o Malaise gana peleas.",
+          "Con Sneaky, el equipo atacando tambien te ayuda a bloquear.",
+        ],
+      },
+    ],
+  },
+
+  defect: {
+    slug: "defect",
+    name: "The Defect",
+    accent: "#4d8be8",
+    identity: "Orbs, Focus, Powers, energia compartida y motores de coste 0 o Status.",
+    multiplayerAdvice:
+      "En multiplayer es excelente como bateria y escalador. Energy Surge e Ignition pueden convertir turnos aliados en turnos ganadores.",
+    draftRules: [
+      "Acto 1: no esperes a Focus para matar. Ball Lightning, Cold Snap, Sunder, Sweeping Beam y Compile Driver estabilizan.",
+      "Focus sin orbs no hace nada; orbs sin Focus escalan menos. Busca equilibrio.",
+      "Las Powers son muy fuertes, pero necesitas sobrevivir al turno en que las juegas.",
+    ],
+    builds: [
+      {
+        id: "defect-focus",
+        name: "Focus Orbs",
+        mode: "steady",
+        label: "Jugar bien",
+        goal: "Canalizar orbs de forma constante y multiplicar su valor con Focus, Loop y slots extra.",
+        multiplayerRole: "Escalador fiable. Buen dano pasivo y defensa estable para peleas largas.",
+        earlyPlan: [
+          "Ball Lightning y Cold Snap son los mejores puentes tempranos.",
+          "Glacier o Coolheaded resuelven defensa mientras escalas.",
+          "No cojas muchas cartas de canalizar si no tienes manera de evocarlas o ampliar slots.",
+        ],
+        core: ["Defragment", "Glacier", "Capacitor", "Loop"],
+        enablers: ["Coolheaded", "Cold Snap", "Ball Lightning", "Compile Driver", "Rainbow"],
+        payoffs: ["Multi-Cast", "Shatter", "Thunder", "Tempest", "Echo Form"],
+        safePicks: ["Charge Battery", "Leap", "Hologram", "Skim", "Buffer"],
+        avoid: ["Hyperbeam", "Bulk Up", "Claw"],
+        upgrades: ["Defragment", "Glacier", "Capacitor", "Loop"],
+        breakpoints: [
+          "Defragment + Glacier: defensa suficiente para escalar.",
+          "Capacitor + Loop: mas pasivas relevantes cada turno.",
+          "Multi-Cast sobre Dark o Plasma: cierre de jefe.",
+        ],
+        notes: [
+          "Esta es la build mas consistente de Defect.",
+          "Hyperbeam puede salvar Acto 1, pero es mala si tu plan depende de Focus.",
+        ],
+      },
+      {
+        id: "defect-zero",
+        name: "0-Cost Claw Loop",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Encadenar cartas de coste 0, recuperarlas con All for One y ganar por volumen.",
+        multiplayerRole: "Carry de turnos largos. Agradece energia o debuffs de aliados.",
+        earlyPlan: [
+          "Claw temprano solo es buena si ves soporte de robo o reciclaje.",
+          "FTL, Beam Cell y Go for the Eyes son utiles aunque no rompas el juego.",
+          "All for One es la pieza que convierte el mazo en motor.",
+        ],
+        core: ["Claw", "All for One", "Scrape"],
+        enablers: ["FTL", "Beam Cell", "Go for the Eyes", "TURBO", "Feral", "Momentum Strike"],
+        payoffs: ["Adaptive Strike", "Reboot", "Skim", "Hologram", "Echo Form"],
+        safePicks: ["Charge Battery", "Compile Driver", "Coolheaded", "Cold Snap"],
+        avoid: ["Meteor Strike", "Biased Cognition", "Capacitor"],
+        upgrades: ["Claw", "All for One", "Scrape", "FTL"],
+        breakpoints: [
+          "All for One + varias cartas 0: rellenas mano y sigues jugando.",
+          "Feral + ataque 0: repites amenazas sin gastar energia.",
+          "Reboot cuando ya hay muchas cartas gratis: segundo turno dentro del mismo turno.",
+        ],
+        notes: [
+          "No fuerces Claw si solo viste una copia y no hay robo.",
+          "Beam Cell es especialmente bueno en multiplayer porque el Vulnerable tambien ayuda a aliados.",
+        ],
+      },
+      {
+        id: "defect-powers",
+        name: "Power Storm",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Jugar Powers que generan orbs, energia, cartas y duplicacion hasta desbordar el combate.",
+        multiplayerRole: "Escalador lento con techo altisimo. Necesita que el equipo cubra los primeros turnos.",
+        earlyPlan: [
+          "Coge defensa premium antes de llenar el mazo de Powers.",
+          "White Noise y Synthesis reducen el coste de arrancar.",
+          "Storm convierte cada Power en Lightning y resuelve dano incidental.",
+        ],
+        core: ["Storm", "Creative AI", "Echo Form"],
+        enablers: ["White Noise", "Synthesis", "Signal Boost", "Subroutine", "Machine Learning"],
+        payoffs: ["Defragment", "Buffer", "Capacitor", "Loop", "Thunder"],
+        safePicks: ["Boot Sequence", "Glacier", "Skim", "Hologram", "Charge Battery"],
+        avoid: ["Claw", "Hyperbeam", "Bulk Up"],
+        upgrades: ["Echo Form si baja coste", "Storm", "Creative AI", "Buffer"],
+        breakpoints: [
+          "Storm + varias Powers: dano pasivo inmediato.",
+          "Echo Form + Power clave: duplica el turno de escalado.",
+          "Creative AI en pelea larga: gana sola si sobrevives.",
+        ],
+        notes: [
+          "Esta build se siente rota cuando ya no eliges entre defender y escalar.",
+          "En multiplayer, pide que otro jugador tome el rol de control temprano si tu mano inicial es lenta.",
+        ],
+      },
+      {
+        id: "defect-team-battery",
+        name: "Bateria de Equipo",
+        mode: "multiplayer",
+        label: "Multiplayer",
+        goal: "Dar energia, Plasma o proteccion al equipo mientras mantienes orbs defensivos.",
+        multiplayerRole: "Soporte premium. Convierte turnos de aliados en combos imposibles en solo.",
+        earlyPlan: [
+          "Energy Surge vale mas si tu equipo tiene cartas caras o X-cost.",
+          "Ignition debe ir al aliado que mejor convierta Plasma en dano o escalado.",
+          "Mantente vivo con Frost y Buffer; no eres solo una bateria.",
+        ],
+        core: ["Energy Surge", "Ignition", "Glacier", "Buffer"],
+        enablers: ["Charge Battery", "Coolheaded", "Hologram", "Genetic Algorithm", "Chill"],
+        payoffs: ["Meteor Strike", "Fusion", "Multi-Cast", "Rainbow", "Loop"],
+        safePicks: ["Leap", "Boot Sequence", "Skim", "Compile Driver"],
+        avoid: ["Hyperbeam", "Claw", "Feral"],
+        upgrades: ["Energy Surge", "Ignition", "Glacier", "Genetic Algorithm"],
+        breakpoints: [
+          "Energy Surge + equipo con manos caras: turno global enorme.",
+          "Ignition sobre carry: Plasma adelanta el turno ganador.",
+          "Hologram + soporte clave: repites la carta que el equipo necesita.",
+        ],
+        notes: [
+          "Coordina a quien das recursos; repartir energia al azar pierde valor.",
+          "Si el equipo ya va sobrado de energia, cambia hacia Frost y Focus.",
+        ],
+      },
+      {
+        id: "defect-status",
+        name: "Status Factory",
+        mode: "break",
+        label: "Raro pero fuerte",
+        goal: "Crear Status a proposito y convertirlos en dano, robo, orbs o combustible.",
+        multiplayerRole: "Carry de AoE con setup. Necesita buen filtrado para no atascarse.",
+        earlyPlan: [
+          "No llenes el mazo de Status antes de tener payoffs.",
+          "Overclock y TURBO son buenos por si solos; el motor llega despues.",
+          "Compact limpia manos malas y crea Fuel.",
+        ],
+        core: ["Smokestack", "Trash to Treasure", "Overclock"],
+        enablers: ["TURBO", "Gunk Up", "Boost Away", "Fight Through", "Iteration"],
+        payoffs: ["Flak Cannon", "Rocket Punch", "Compact", "Scavenge"],
+        safePicks: ["Hologram", "Skim", "Charge Battery", "Leap"],
+        avoid: ["Claw", "Grand Finale", "Creative AI"],
+        upgrades: ["Smokestack", "Trash to Treasure", "Flak Cannon", "Overclock"],
+        breakpoints: [
+          "Smokestack + crear Status: AoE por hacer lo que ya quieres.",
+          "Trash to Treasure + Status repetidos: orbs gratis.",
+          "Flak Cannon con mano sucia: convierte basura en lethal.",
+        ],
+        notes: [
+          "Es muy dependiente de piezas. Si no salen payoffs, usa TURBO/Overclock como soporte normal.",
+          "Hologram ayuda a recuperar Compact o Flak Cannon en el turno exacto.",
+        ],
+      },
+    ],
+  },
+
+  regent: {
+    slug: "regent",
+    name: "The Regent",
+    accent: "#d88b35",
+    identity: "Star resource, Forge, cartas creadas, Sovereign Blade y soporte regio para aliados.",
+    multiplayerAdvice:
+      "En multiplayer es un facilitador brutal: Forge compartido, cartas Colorless para aliados y debuffs AoE. Tambien puede ser carry si consigue Genesis o The Sealed Throne.",
+    draftRules: [
+      "Acto 1: Solar Strike, Astral Pulse, Guiding Star, Devastate y Gamma Blast dan tempo real.",
+      "Forge necesita que Sovereign Blade aparezca o que Summon Forth lo encuentre.",
+      "Star es recurso de combo. Si solo acumulas Star sin gastar bien, el mazo pierde turnos.",
+    ],
+    builds: [
+      {
+        id: "regent-stars",
+        name: "Star Economy",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Generar Star de forma repetida y gastarla en cartas que escalan por recurso.",
+        multiplayerRole: "Carry economico. Puede explotar turnos con X-cost y AoE.",
+        earlyPlan: [
+          "Glow, Gather Light y Solar Strike son buenos puentes.",
+          "No cojas demasiadas cartas que gastan Star si aun no generas.",
+          "Genesis o The Sealed Throne cambian todo el draft: prioriza payoffs caros.",
+        ],
+        core: ["Genesis", "The Sealed Throne", "Glow"],
+        enablers: ["Gather Light", "Hidden Cache", "Solar Strike", "Shining Strike", "Royal Gamble"],
+        payoffs: ["Radiate", "Black Hole", "Child of the Stars", "Stardust", "Heavenly Drill", "Big Bang"],
+        safePicks: ["Guiding Star", "Cloak of Stars", "Glitterstream", "Glimmer", "Convergence"],
+        avoid: ["Royalties", "The Smith", "GUARDS!!!"],
+        upgrades: ["Genesis", "The Sealed Throne", "Radiate", "Heavenly Drill"],
+        breakpoints: [
+          "The Sealed Throne + muchas cartas: Star por jugar, no por esperar.",
+          "Genesis + payoffs X-cost: turnos con techo muy alto.",
+          "Black Hole + gasto repetido de Star: AoE pasivo.",
+        ],
+        notes: [
+          "La build se rompe cuando el recurso aparece sin gastar cartas flojas.",
+          "Si el equipo puede darte energia, Heavenly Drill y Stardust suben mucho.",
+        ],
+      },
+      {
+        id: "regent-forge",
+        name: "Forge Sovereign Blade",
+        mode: "steady",
+        label: "Jugar bien",
+        goal: "Forjar Sovereign Blade, recuperarla y convertir una carta unica en win condition.",
+        multiplayerRole: "Carry de escalado lineal. Hammer Time tambien hace escalar al equipo.",
+        earlyPlan: [
+          "Refine Blade y Spoils of Battle son buenos incluso antes del plan completo.",
+          "Summon Forth arregla la consistencia: sin Blade en mano, Forge pierde valor.",
+          "Busca bloque porque muchos turnos gastan acciones en mejorar el arma.",
+        ],
+        core: ["Refine Blade", "Summon Forth", "Furnace"],
+        enablers: ["Spoils of Battle", "The Smith", "Bulwark", "Wrought in War", "Hammer Time"],
+        payoffs: ["Seeking Edge", "Sword Sage", "Conqueror", "Parry", "Beat into Shape"],
+        safePicks: ["Cloak of Stars", "Patter", "Cosmic Indifference", "Photon Cut", "Guiding Star"],
+        avoid: ["Royalties", "Bundle of Joy", "Black Hole"],
+        upgrades: ["Summon Forth", "Furnace", "Seeking Edge", "Sword Sage"],
+        breakpoints: [
+          "Summon Forth + Forge acumulado: siempre encuentras la amenaza.",
+          "Seeking Edge + Sword Sage: Blade pasa a limpiar multiples enemigos.",
+          "Hammer Time: cada Forge tambien ayuda al equipo.",
+        ],
+        notes: [
+          "No necesitas cien cartas de Forge. Necesitas encontrar y jugar la Blade.",
+          "Si aparece Seeking Edge, la build resuelve AoE mucho mejor.",
+        ],
+      },
+      {
+        id: "regent-created",
+        name: "Cartas Creadas",
+        mode: "break",
+        label: "Value engine",
+        goal: "Crear cartas, convertir esa creacion en bloque o Fuerza y ganar por avalancha de recursos.",
+        multiplayerRole: "Flex. Da cartas al equipo o se queda el value para escalar.",
+        earlyPlan: [
+          "Manifest Authority y Quasar son mejores cuando puedes aprovechar opciones variadas.",
+          "Pillar of Creation estabiliza cada carta creada.",
+          "Arsenal transforma cada creacion en dano futuro.",
+        ],
+        core: ["Arsenal", "Pillar of Creation", "Spectrum Shift"],
+        enablers: ["Manifest Authority", "Quasar", "Bundle of Joy", "Largesse", "Heirloom Hammer"],
+        payoffs: ["Supermassive", "Tyranny", "Decisions, Decisions", "Void Form"],
+        safePicks: ["Glimmer", "Glow", "Cloak of Stars", "Cosmic Indifference", "Prophesize"],
+        avoid: ["The Smith", "Seeking Edge", "Parry"],
+        upgrades: ["Arsenal", "Pillar of Creation", "Spectrum Shift", "Supermassive"],
+        breakpoints: [
+          "Arsenal + cartas creadas cada turno: Fuerza incremental sin gastar ataques.",
+          "Pillar of Creation + generadores: defensa mientras improvisas.",
+          "Supermassive en combate largo: payoff directo por todo lo creado.",
+        ],
+        notes: [
+          "Es una build flexible, pero puede ensuciar la mano. Prioriza robo y descarte de malas opciones.",
+          "En multiplayer, Largesse debe ir al aliado que mejor use Colorless ese turno.",
+        ],
+      },
+      {
+        id: "regent-team",
+        name: "Rey de Soporte",
+        mode: "multiplayer",
+        label: "Multiplayer",
+        goal: "Dar Forge, cartas, debuffs y ventanas defensivas para que el equipo gane.",
+        multiplayerRole: "Soporte ofensivo. No siempre mata, pero hace que todos peguen y escalen mas.",
+        earlyPlan: [
+          "Resonance, Gamma Blast y Know Thy Place ayudan al equipo desde temprano.",
+          "Hammer Time es prioridad si hay aliados con Forge o builds lentas.",
+          "No te quedes sin defensa propia: un soporte muerto no aporta.",
+        ],
+        core: ["Hammer Time", "Largesse", "Resonance"],
+        enablers: ["Alignment", "Convergence", "Foregone Conclusion", "Prophesize", "Manifest Authority"],
+        payoffs: ["Dying Star", "Meteor Shower", "Monarch's Gaze", "Neutron Aegis"],
+        safePicks: ["Bulwark", "Reflect", "Glitterstream", "Patter", "Cloak of Stars"],
+        avoid: ["Royalties", "Kingly Punch", "Kingly Kick"],
+        upgrades: ["Hammer Time", "Dying Star", "Meteor Shower", "Reflect"],
+        breakpoints: [
+          "Hammer Time + Forge propio: todo el equipo escala.",
+          "Meteor Shower: Weak y Vulnerable AoE para turnos de burst.",
+          "Foregone Conclusion + aliado combo: prepara manos ganadoras.",
+        ],
+        notes: [
+          "Tu valor sube con comunicacion. Pregunta quien puede aprovechar cartas o energia.",
+          "Monarch's Gaze es excelente contra enemigos de multi-hit o turnos de burst enemigo.",
+        ],
+      },
+    ],
+  },
+
+  necrobinder: {
+    slug: "necrobinder",
+    name: "The Necrobinder",
+    accent: "#9d68d8",
+    identity: "Osty, Souls, Doom, Ethereal, debuffs y sacrificios calculados.",
+    multiplayerAdvice:
+      "En multiplayer puede jugar carry con Doom/Souls o soporte con Legion of Bone, Glimpse Beyond y debuffs fuertes. Osty permite separar dano y defensa de forma unica.",
+    draftRules: [
+      "Acto 1: necesitas dano y supervivencia. Defile, Reap, Fear, Flatten, Poke y Negative Pulse son buenas bases.",
+      "Souls, Doom, Ethereal y Osty son planes distintos. Puedes cruzarlos, pero elige una condicion de victoria.",
+      "Summon no es solo defensa: con Calcify, Sic 'Em, Squeeze o Necro Mastery se vuelve dano.",
+    ],
+    builds: [
+      {
+        id: "necro-souls",
+        name: "Soul Engine",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Crear Souls, jugarlas muchas veces y convertir cada Soul en HP loss, Summon o escalado.",
+        multiplayerRole: "Carry de engine. Glimpse Beyond puede convertir a todo el equipo en generador de Souls.",
+        earlyPlan: [
+          "Grave Warden y Reave son buenos puentes porque no sacrifican demasiado tempo.",
+          "Haunt es la pieza que convierte Souls en dano real.",
+          "No llenes el mazo de Souls si no tienes payoff o robo.",
+        ],
+        core: ["Haunt", "Devour Life", "Capture Spirit"],
+        enablers: ["Grave Warden", "Reave", "Severance", "Dirge", "Seance"],
+        payoffs: ["Soul Storm", "Glimpse Beyond", "Call of the Void", "Wisp"],
+        safePicks: ["Parse", "Dredge", "Pull Aggro", "Defy", "Fear"],
+        avoid: ["Bury", "Squeeze", "Reaper Form"],
+        upgrades: ["Haunt", "Capture Spirit", "Soul Storm", "Glimpse Beyond"],
+        breakpoints: [
+          "Haunt + multiples Souls: dano que ignora bloque por volumen.",
+          "Devour Life + Souls: cada Soul tambien protege a Osty.",
+          "Glimpse Beyond en multiplayer: todos generan combustible para tu plan.",
+        ],
+        notes: [
+          "La trampa es crear mas Souls de las que puedes jugar.",
+          "Wisp arregla turnos donde la mano tiene muchas cartas pero poca energia.",
+        ],
+      },
+      {
+        id: "necro-osty",
+        name: "Osty Carry",
+        mode: "steady",
+        label: "Jugar bien",
+        goal: "Mantener a Osty vivo, hacerlo pegar varias veces y convertir Summon en dano.",
+        multiplayerRole: "Carry flexible. Puede tanquear, hacer AoE y rematar sin exponer tanto a la Necrobinder.",
+        earlyPlan: [
+          "Afterlife, Pull Aggro y Spur mantienen a Osty activo.",
+          "Poke y Flatten son dano temprano muy simple.",
+          "Calcify cambia la prioridad: cada ataque de Osty escala mejor.",
+        ],
+        core: ["Calcify", "Afterlife", "Spur"],
+        enablers: ["Bodyguard", "Pull Aggro", "Reanimate", "Fetch", "Flatten"],
+        payoffs: ["Rattle", "Sic 'Em", "Squeeze", "High Five", "Necro Mastery", "Protector"],
+        safePicks: ["Poke", "Unleash", "Snap", "Bone Shards", "Sacrifice"],
+        avoid: ["Banshee's Cry", "Time's Up", "Soul Storm"],
+        upgrades: ["Calcify", "Spur", "Squeeze", "Rattle"],
+        breakpoints: [
+          "Calcify + muchos ataques de Osty: cada golpe gana valor.",
+          "Sic 'Em + Rattle: Summon y multi-hit se retroalimentan.",
+          "Necro Mastery + Osty perdiendo HP: el dano enemigo se vuelve dano a todos.",
+        ],
+        notes: [
+          "No mates a Osty con Bone Shards o Sacrifice sin tener forma de reponerlo.",
+          "High Five es excelente si el equipo aprovecha Vulnerable AoE.",
+        ],
+      },
+      {
+        id: "necro-doom",
+        name: "Doom Reaper",
+        mode: "break",
+        label: "Romper el juego",
+        goal: "Apilar Doom, convertir cualquier dano en Doom y ejecutar enemigos con End of Days o Time's Up.",
+        multiplayerRole: "Debuffer carry. Excelente cuando el equipo puede alargar combates sin perder vida.",
+        earlyPlan: [
+          "Blight Strike y Scourge son buenas entradas.",
+          "Negative Pulse arregla AoE y defensa al mismo tiempo.",
+          "Reaper Form es la pieza de techo alto: despues de eso todos tus ataques escalan Doom.",
+        ],
+        core: ["Reaper Form", "Scourge", "Negative Pulse"],
+        enablers: ["Blight Strike", "Deathbringer", "Countdown", "No Escape", "Oblivion"],
+        payoffs: ["Time's Up", "End of Days", "Shroud", "Sleight of Flesh", "Misery"],
+        safePicks: ["Putrefy", "Debilitate", "Fear", "Death's Door", "Drain Power"],
+        avoid: ["Squeeze", "Soul Storm", "Banshee's Cry"],
+        upgrades: ["Reaper Form", "End of Days", "Deathbringer", "Shroud"],
+        breakpoints: [
+          "Reaper Form + multi-hit o AoE: dano y Doom a la vez.",
+          "Shroud + aplicar Doom muchas veces: defensa pasiva.",
+          "End of Days con Doom alto: elimina enemigos sin calcular lethal exacto.",
+        ],
+        notes: [
+          "Doom necesita tiempo. Si tu equipo ya tiene burst, juega debuffs y no sobredraftees payoffs.",
+          "Time's Up mejora mucho cuando puedes retener o manipular mano.",
+        ],
+      },
+      {
+        id: "necro-ethereal",
+        name: "Ethereal Pagestorm",
+        mode: "break",
+        label: "Motor raro",
+        goal: "Crear y jugar Ethereal para robar, bloquear y abaratar bombas como Banshee's Cry.",
+        multiplayerRole: "Carry de turnos explosivos. Necesita plan defensivo si no aparece Spirit of Ash.",
+        earlyPlan: [
+          "Defile y Defy son picks tempranos aceptables porque ya son Ethereal.",
+          "Pagestorm hace que robar Ethereal no te deje sin mano.",
+          "Veilpiercer arregla costes de cartas Ethereal importantes.",
+        ],
+        core: ["Pagestorm", "Spirit of Ash", "Call of the Void"],
+        enablers: ["Defile", "Defy", "Sculpting Strike", "Veilpiercer", "Seance"],
+        payoffs: ["Banshee's Cry", "Pull from Below", "Eidolon", "Transfigure"],
+        safePicks: ["Parse", "Dredge", "Delay", "Melancholy", "Wisp"],
+        avoid: ["Squeeze", "Protector", "End of Days"],
+        upgrades: ["Pagestorm", "Spirit of Ash", "Banshee's Cry", "Veilpiercer"],
+        breakpoints: [
+          "Pagestorm + Ethereal repetido: mano enorme.",
+          "Spirit of Ash + muchas Ethereal: bloque mientras juegas cartas temporales.",
+          "Banshee's Cry tras varias Ethereal: AoE de coste razonable.",
+        ],
+        notes: [
+          "La build es potente pero menos directa. Si no aparece Pagestorm o Spirit of Ash, juega Ethereal como soporte.",
+          "Transfigure puede romper cartas clave, pero no lo tires a una carta que ya cueste demasiado.",
+        ],
+      },
+      {
+        id: "necro-team",
+        name: "Nigromancia de Equipo",
+        mode: "multiplayer",
+        label: "Multiplayer",
+        goal: "Dar Summon o Souls al equipo y multiplicar el dano aliado con debuffs.",
+        multiplayerRole: "Soporte agresivo. Hace que todo el equipo sobreviva mejor y pegue mas.",
+        earlyPlan: [
+          "Legion of Bone y Glimpse Beyond tienen valor global; cogelos si tu equipo puede usar esos recursos.",
+          "Putrefy y Debilitate preparan turnos de burst de otros jugadores.",
+          "Enfeebling Touch y Shared Fate bajan picos de dano enemigo.",
+        ],
+        core: ["Legion of Bone", "Glimpse Beyond", "Putrefy"],
+        enablers: ["Debilitate", "Enfeebling Touch", "Shared Fate", "Deathbringer", "High Five"],
+        payoffs: ["Sleight of Flesh", "Melancholy", "Shroud", "Necro Mastery"],
+        safePicks: ["Pull Aggro", "Grave Warden", "Defy", "Fear", "Parse"],
+        avoid: ["Bury", "The Scythe", "Hang"],
+        upgrades: ["Legion of Bone", "Glimpse Beyond", "Putrefy", "Debilitate"],
+        breakpoints: [
+          "Legion of Bone: todo el equipo gana cuerpo defensivo.",
+          "Glimpse Beyond + aliados con energia/robo: Souls se convierten en recursos de equipo.",
+          "Debilitate + Weak/Vulnerable: amplifica control y dano aliado.",
+        ],
+        notes: [
+          "No todos los aliados quieren Souls. Si les ensucia el mazo, prioriza debuffs y Summon.",
+          "High Five es muy fuerte si el equipo ataca al mismo enemigo.",
+        ],
+      },
+    ],
+  },
+};

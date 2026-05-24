@@ -1,0 +1,1427 @@
+---
+import spireData from "../data/spire-data.json";
+import { buildGuides } from "../data/buildGuides";
+
+const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003c");
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>STS2 Creador de Builds</title>
+    <meta
+      name="description"
+      content="Creador de builds para Slay the Spire 2. Elige cartas y descubre qué builds encajan."
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="home-logo" href="/creator" title="Creador de Builds">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#d9b263"/>
+            <path d="M8 22V12l8-5 8 5v10l-8 4-8-4z" fill="#18130a" stroke="#18130a" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 7v19M8 12l8 5 8-5" stroke="#d9b263" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">STS2</span>
+        </a>
+        <div class="topbar-center">
+          <h1 id="pageTitle">Creador de Builds</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="nav-link" href="/">Portal</a>
+          <a class="nav-link" href="/cards">Cartas</a>
+          <div class="lang-toggle" id="langToggle" aria-label="Language">
+            <button type="button" data-lang="es">ES</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="creator-shell">
+        <section class="class-section">
+          <div class="section-heading">
+            <p class="eyebrow" id="step1Label">Paso 1</p>
+            <h2 id="classSectionTitle">Elige una clase (opcional)</h2>
+          </div>
+          <div id="classTabs" class="class-tabs"></div>
+        </section>
+
+        <section class="search-section">
+          <div class="section-heading">
+            <p class="eyebrow" id="step2Label">Paso 2</p>
+            <h2 id="searchSectionTitle">Busca y añade cartas</h2>
+          </div>
+          <label class="field full">
+            <span id="searchLabel">Buscar carta</span>
+            <input id="cardSearch" type="search" placeholder="Haunt, Glacier, Blade Dance..." />
+          </label>
+          <div id="searchResults" class="search-results"></div>
+        </section>
+
+        <section class="deck-section">
+          <div class="deck-header">
+            <div>
+              <p class="eyebrow" id="deckLabel">Tu mazo</p>
+              <h2 id="deckTitle">0 cartas</h2>
+            </div>
+            <button id="clearDeck" class="reset-button" type="button">Limpiar</button>
+          </div>
+          <div id="deckGrid" class="deck-grid"></div>
+          <p id="deckEmpty" class="empty-state">Busca cartas arriba para añadirlas a tu mazo.</p>
+        </section>
+
+        <section class="results-section">
+          <div class="section-heading">
+            <p class="eyebrow" id="resultsLabel">Builds recomendadas</p>
+            <h2 id="resultsTitle">Basado en tus cartas</h2>
+          </div>
+          <p id="resultsEmpty" class="empty-state">Añade cartas para ver qué builds encajan con tu selección.</p>
+          <div id="buildResults" class="build-results"></div>
+        </section>
+      </main>
+
+      <dialog id="buildDialog" class="build-dialog">
+        <article class="dialog-panel">
+          <button id="buildDialogClose" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+          <div id="buildDialogBody" class="dialog-body"></div>
+        </article>
+      </dialog>
+
+      <dialog id="cardDialog" class="card-dialog">
+        <article class="dialog-panel">
+          <button id="cardDialogClose" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+          <div id="cardDialogBody" class="dialog-body"></div>
+        </article>
+      </dialog>
+    </div>
+
+    <script is:inline id="creatorData" type="application/json" set:html={payload}></script>
+    <script is:inline type="module">
+      const { spireData, buildGuides } = JSON.parse(document.getElementById("creatorData").textContent);
+      const IMAGE_BASE = "https://spire-codex.com";
+      const allCards = spireData.allCards || Object.values(spireData.cardsByClass).flat();
+      const classSlugs = ["ironclad", "silent", "defect", "regent", "necrobinder"];
+
+      const copy = {
+        es: {
+          pageTitle: "Creador de Builds",
+          step1: "Paso 1",
+          step2: "Paso 2",
+          classSectionTitle: "Elige una clase (opcional)",
+          allClasses: "Todas",
+          searchSectionTitle: "Busca y añade cartas",
+          searchLabel: "Buscar carta",
+          searchPlaceholder: "Haunt, Glacier, Blade Dance...",
+          deckLabel: "Tu mazo",
+          deckTitle: "cartas",
+          clear: "Limpiar",
+          deckEmpty: "Busca cartas arriba para añadirlas a tu mazo.",
+          resultsLabel: "Builds recomendadas",
+          resultsTitle: "Basado en tus cartas",
+          resultsEmpty: "Añade cartas para ver qué builds encajan con tu selección.",
+          add: "Añadir",
+          remove: "Quitar",
+          roleCore: "Core",
+          roleEnabler: "Habilitador",
+          rolePayoff: "Payoff",
+          roleSafe: "Pick seguro",
+          roleAvoid: "Evitar",
+          noMatch: "Sin coincidencias.",
+          matchScore: "puntos de afinidad",
+          matchedCards: "cartas que encajan",
+          buildGoal: "Objetivo",
+          earlyPlan: "Plan temprano",
+          breakpoints: "Breakpoints",
+          draftRules: "Reglas de draft",
+          core: "Núcleo",
+          enablers: "Habilitadoras",
+          payoffs: "Pagos",
+          safePicks: "Picks seguros",
+          avoid: "Evitar",
+          close: "Cerrar",
+          baseDescription: "Descripción",
+          upgradeDescription: "Mejora",
+          stats: "Datos",
+          source: "Abrir en Spire Codex",
+          whyCore: "pieza núcleo de",
+          whyEnabler: "habilita el plan de",
+          whyPayoff: "payoff de",
+          whySafe: "pick seguro para",
+          whyAvoid: "evitar en",
+        },
+        en: {
+          pageTitle: "Build Creator",
+          step1: "Step 1",
+          step2: "Step 2",
+          classSectionTitle: "Choose a class (optional)",
+          allClasses: "All",
+          searchSectionTitle: "Search and add cards",
+          searchLabel: "Search card",
+          searchPlaceholder: "Haunt, Glacier, Blade Dance...",
+          deckLabel: "Your deck",
+          deckTitle: "cards",
+          clear: "Clear",
+          deckEmpty: "Search for cards above to add them to your deck.",
+          resultsLabel: "Recommended builds",
+          resultsTitle: "Based on your cards",
+          resultsEmpty: "Add cards to see which builds match your selection.",
+          add: "Add",
+          remove: "Remove",
+          roleCore: "Core",
+          roleEnabler: "Enabler",
+          rolePayoff: "Payoff",
+          roleSafe: "Safe pick",
+          roleAvoid: "Avoid",
+          noMatch: "No matches.",
+          matchScore: "affinity points",
+          matchedCards: "matching cards",
+          buildGoal: "Goal",
+          earlyPlan: "Early Plan",
+          breakpoints: "Breakpoints",
+          draftRules: "Draft Rules",
+          core: "Core",
+          enablers: "Enablers",
+          payoffs: "Payoffs",
+          safePicks: "Safe Picks",
+          avoid: "Avoid",
+          close: "Close",
+          baseDescription: "Description",
+          upgradeDescription: "Upgrade",
+          stats: "Stats",
+          source: "Open in Spire Codex",
+          whyCore: "core piece of",
+          whyEnabler: "enables the plan of",
+          whyPayoff: "payoff for",
+          whySafe: "safe pick for",
+          whyAvoid: "avoid in",
+        },
+      };
+
+      const classAccents = {
+        ironclad: "#d65a45",
+        silent: "#46a96f",
+        defect: "#4d8be8",
+        regent: "#d88b35",
+        necrobinder: "#9d68d8",
+      };
+
+      const buildSections = [
+        ["core", "roleCore", 40],
+        ["enablers", "roleEnabler", 30],
+        ["payoffs", "rolePayoff", 30],
+        ["safePicks", "roleSafe", 15],
+        ["avoid", "roleAvoid", -50],
+      ];
+
+      const buildCatalog = Object.values(buildGuides || {}).flatMap((guide) =>
+        (guide.builds || []).map((build) => ({ guide, build }))
+      );
+
+      const state = {
+        lang: localStorage.getItem("sts2-lang") || "es",
+        classSlug: null,
+        deck: [],
+        query: "",
+      };
+
+      const els = {
+        pageTitle: document.getElementById("pageTitle"),
+        langToggle: document.getElementById("langToggle"),
+        step1Label: document.getElementById("step1Label"),
+        step2Label: document.getElementById("step2Label"),
+        classSectionTitle: document.getElementById("classSectionTitle"),
+        classTabs: document.getElementById("classTabs"),
+        searchSectionTitle: document.getElementById("searchSectionTitle"),
+        searchLabel: document.getElementById("searchLabel"),
+        cardSearch: document.getElementById("cardSearch"),
+        searchResults: document.getElementById("searchResults"),
+        deckLabel: document.getElementById("deckLabel"),
+        deckTitle: document.getElementById("deckTitle"),
+        clearDeck: document.getElementById("clearDeck"),
+        deckGrid: document.getElementById("deckGrid"),
+        deckEmpty: document.getElementById("deckEmpty"),
+        resultsLabel: document.getElementById("resultsLabel"),
+        resultsTitle: document.getElementById("resultsTitle"),
+        resultsEmpty: document.getElementById("resultsEmpty"),
+        buildResults: document.getElementById("buildResults"),
+        buildDialog: document.getElementById("buildDialog"),
+        buildDialogBody: document.getElementById("buildDialogBody"),
+        buildDialogClose: document.getElementById("buildDialogClose"),
+        cardDialog: document.getElementById("cardDialog"),
+        cardDialogBody: document.getElementById("cardDialogBody"),
+        cardDialogClose: document.getElementById("cardDialogClose"),
+      };
+
+      function t(key) {
+        return copy[state.lang]?.[key] || copy.es[key] || key;
+      }
+
+      function escapeHtml(value = "") {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function fold(value = "") {
+        return String(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      }
+
+      function normalizeName(value = "") {
+        return fold(value).replace(/[^a-z0-9]+/g, " ").trim();
+      }
+
+      function cardName(card) {
+        return state.lang === "es" && card.localized?.es?.name ? card.localized.es.name : card.name;
+      }
+
+      function cardDescription(card) {
+        return state.lang === "es" && card.localized?.es?.description ? card.localized.es.description : card.description || "";
+      }
+
+      function cardType(card) {
+        if (state.lang === "es" && card.localized?.es?.type) return card.localized.es.type;
+        return card.type;
+      }
+
+      function cardRarity(card) {
+        if (state.lang === "es" && card.localized?.es?.rarity) return card.localized.es.rarity;
+        return card.rarity;
+      }
+
+      function costLabel(card) {
+        if (card.is_x_cost || card.cost === -1) return "X";
+        if (card.is_x_star_cost) return "XS";
+        if (card.star_cost) return `${card.star_cost}S`;
+        return String(card.cost);
+      }
+
+      function colorLabel(color) {
+        const map = {
+          es: { ironclad: "Ironclad", silent: "Silent", defect: "Defect", regent: "Regent", necrobinder: "Necrobinder", colorless: "Incolora" },
+          en: { ironclad: "Ironclad", silent: "Silent", defect: "Defect", regent: "Regent", necrobinder: "Necrobinder", colorless: "Colorless" },
+        };
+        return map[state.lang]?.[color] || color;
+      }
+
+      function normalizeUrl(url) {
+        if (!url) return "";
+        return url.startsWith("http") ? url : `${IMAGE_BASE}${url}`;
+      }
+
+      function cleanText(text = "") {
+        return text
+          .replace(/\[gold\]|\[\/gold\]/g, "")
+          .replace(/\[energy:(\d)\]/g, "$1E")
+          .replace(/\[star:(\d)\]/g, "$1S")
+          .replace(/\[purple\]|\[\/purple\]/g, "")
+          .replace(/\n/g, " ");
+      }
+
+      function cardAliases(card) {
+        return [...new Set([card.name, card.localized?.es?.name, cardName(card)].filter(Boolean).map(normalizeName))].filter(Boolean);
+      }
+
+      function getSearchableCards() {
+        if (state.classSlug) return spireData.cardsByClass[state.classSlug] || [];
+        return allCards.filter((c) => classSlugs.includes(c.color));
+      }
+
+      function renderStaticText() {
+        document.documentElement.lang = state.lang;
+        els.pageTitle.textContent = t("pageTitle");
+        els.step1Label.textContent = t("step1");
+        els.step2Label.textContent = t("step2");
+        els.classSectionTitle.textContent = t("classSectionTitle");
+        els.searchSectionTitle.textContent = t("searchSectionTitle");
+        els.searchLabel.textContent = t("searchLabel");
+        els.cardSearch.placeholder = t("searchPlaceholder");
+        els.deckLabel.textContent = t("deckLabel");
+        els.clearDeck.textContent = t("clear");
+        els.deckEmpty.textContent = t("deckEmpty");
+        els.resultsLabel.textContent = t("resultsLabel");
+        els.resultsTitle.textContent = t("resultsTitle");
+        els.resultsEmpty.textContent = t("resultsEmpty");
+        els.langToggle.querySelectorAll("button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === state.lang);
+          button.setAttribute("aria-pressed", String(button.dataset.lang === state.lang));
+        });
+      }
+
+      function renderClassTabs() {
+        const tabs = [
+          `<button type="button" class="class-tab ${!state.classSlug ? "active" : ""}" data-class="" style="--accent: var(--gold)">${t("allClasses")}</button>`,
+          ...spireData.characters.map((character) => {
+            const slug = character.id.toLowerCase();
+            const guide = buildGuides[slug];
+            return `
+              <button type="button" class="class-tab ${slug === state.classSlug ? "active" : ""}" data-class="${slug}" style="--accent:${guide.accent}">
+                <img src="${normalizeUrl(character.image_url)}" alt="" />
+                <span>${character.name.replace("The ", "")}</span>
+              </button>
+            `;
+          }),
+        ];
+        els.classTabs.innerHTML = tabs.join("");
+      }
+
+      function renderSearch() {
+        const query = fold(els.cardSearch.value.trim());
+        if (!query) {
+          els.searchResults.innerHTML = "";
+          return;
+        }
+
+        const deckIds = new Set(state.deck.map((c) => c.id));
+        const cards = getSearchableCards()
+          .filter((card) => !deckIds.has(card.id))
+          .filter((card) => {
+            return fold(
+              `${card.name} ${card.description} ${card.type} ${card.rarity} ${card.color} ${cardName(card)} ${cardDescription(card)} ${cardType(card)} ${cardRarity(card)} ${colorLabel(card.color)}`
+            ).includes(query);
+          })
+          .slice(0, 10);
+
+        if (!cards.length) {
+          els.searchResults.innerHTML = `<p class="empty-state">${t("noMatch")}</p>`;
+          return;
+        }
+
+        els.searchResults.innerHTML = cards
+          .map(
+            (card) => `
+              <button type="button" class="search-result color-${escapeHtml(card.color)}" data-add-id="${escapeHtml(card.id)}">
+                <img src="${normalizeUrl(card.image_url)}" alt="" loading="lazy" />
+                <div class="search-result-info">
+                  <strong>${escapeHtml(cardName(card))}</strong>
+                  <small>${escapeHtml(colorLabel(card.color))} · ${escapeHtml(cardType(card))} · ${costLabel(card)}</small>
+                </div>
+                <span class="add-btn">${escapeHtml(t("add"))}</span>
+              </button>
+            `
+          )
+          .join("");
+      }
+
+      function renderDeck() {
+        const count = state.deck.length;
+        els.deckTitle.textContent = `${count} ${t("deckTitle")}`;
+        els.deckEmpty.style.display = count ? "none" : "block";
+
+        els.deckGrid.innerHTML = state.deck
+          .map(
+            (card) => `
+              <article class="deck-card color-${escapeHtml(card.color)}" data-card-id="${escapeHtml(card.id)}">
+                <img src="${normalizeUrl(card.image_url)}" alt="" loading="lazy" />
+                <div class="deck-card-info">
+                  <strong>${escapeHtml(cardName(card))}</strong>
+                  <small>${costLabel(card)} · ${escapeHtml(cardType(card))}</small>
+                </div>
+                <button type="button" class="remove-btn" data-remove-id="${escapeHtml(card.id)}">${escapeHtml(t("remove"))}</button>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function computeRecommendations() {
+        if (!state.deck.length) return [];
+
+        const deckAliases = state.deck.map((card) => ({ card, aliases: cardAliases(card) }));
+
+        const results = buildCatalog
+          .map(({ guide, build }) => {
+            if (state.classSlug && guide.slug !== state.classSlug) return null;
+
+            let score = 0;
+            const matches = [];
+
+            buildSections.forEach(([section, roleKey, weight]) => {
+              (build[section] || []).forEach((entry) => {
+                const normalizedEntry = normalizeName(entry);
+                deckAliases.forEach(({ card, aliases }) => {
+                  if (aliases.some((alias) => normalizedEntry === alias || normalizedEntry.includes(alias) || alias.includes(normalizedEntry))) {
+                    score += weight;
+                    matches.push({ card, section, roleKey, weight });
+                  }
+                });
+              });
+            });
+
+            return { guide, build, score, matches };
+          })
+          .filter(Boolean)
+          .filter((r) => r.score > 0)
+          .sort((a, b) => b.score - a.score);
+
+        return results;
+      }
+
+      function renderResults() {
+        const results = computeRecommendations();
+        if (!results.length) {
+          els.resultsEmpty.style.display = state.deck.length ? "none" : "block";
+          els.buildResults.innerHTML = state.deck.length ? `<p class="empty-state">${t("resultsEmpty")}</p>` : "";
+          return;
+        }
+
+        els.resultsEmpty.style.display = "none";
+        els.buildResults.innerHTML = results
+          .map(
+            ({ guide, build, score, matches }) => {
+              const accent = classAccents[guide.slug] || "var(--gold)";
+              const positiveMatches = matches.filter((m) => m.weight > 0);
+              return `
+                <article class="build-result color-${escapeHtml(guide.slug)}" style="--match-accent: ${accent}" data-build-id="${escapeHtml(build.id)}" data-guide-slug="${escapeHtml(guide.slug)}">
+                  <div class="build-result-top">
+                    <div>
+                      <strong>${escapeHtml(build.name)}</strong>
+                      <small>${escapeHtml(guide.name)} · ${escapeHtml(build.label)}</small>
+                    </div>
+                    <div class="build-score">
+                      <span>${score}</span>
+                      <small>${escapeHtml(t("matchScore"))}</small>
+                    </div>
+                  </div>
+                  <p class="build-goal"><b>${escapeHtml(t("buildGoal"))}:</b> ${escapeHtml(build.goal)}</p>
+                  <div class="build-match-list">
+                    ${positiveMatches
+                      .map(
+                        ({ card, section, roleKey }) => `
+                          <div class="build-match-entry role-${section}">
+                            <span>${escapeHtml(cardName(card))}</span>
+                            <b>${escapeHtml(t(roleKey))}</b>
+                          </div>
+                        `
+                      )
+                      .join("")}
+                    ${matches
+                      .filter((m) => m.weight < 0)
+                      .map(
+                        ({ card, roleKey }) => `
+                          <div class="build-match-entry is-warning">
+                            <span>${escapeHtml(cardName(card))}</span>
+                            <b>${escapeHtml(t(roleKey))}</b>
+                          </div>
+                        `
+                      )
+                      .join("")}
+                  </div>
+                </article>
+              `;
+            }
+          )
+          .join("");
+      }
+
+      function cardSlug(card) {
+        const image = card.image_url || "";
+        return image.split("/").pop()?.replace(/\.(webp|png|jpg|jpeg)$/i, "") || card.id.toLowerCase();
+      }
+
+      function cardUrl(card) {
+        const prefix = state.lang === "es" ? "/spa" : "";
+        return `${IMAGE_BASE}${prefix}/cards/${cardSlug(card)}`;
+      }
+
+      function statRows(card) {
+        return [
+          [t("buildGoal"), colorLabel(card.color)],
+          [cardType(card)],
+          [cardRarity(card)],
+          [costLabel(card)],
+        ].filter(([v]) => v).join(" · ");
+      }
+
+      function openCardDialog(card) {
+        const name = cardName(card);
+        const desc = cleanText(cardDescription(card)) || "";
+        const upgrade = card.localized?.es?.upgrade_description || card.upgrade_description || "";
+        const upgradeText = cleanText(upgrade);
+        els.cardDialogBody.innerHTML = `
+          <div class="dialog-art">
+            <img src="${normalizeUrl(card.image_url)}" alt="${escapeHtml(name)}" />
+          </div>
+          <div class="dialog-info">
+            <p class="eyebrow">${escapeHtml(colorLabel(card.color))}</p>
+            <h2>${escapeHtml(name)}</h2>
+            <div class="meta-row">
+              <span>${escapeHtml(cardType(card))}</span>
+              <span>${escapeHtml(cardRarity(card))}</span>
+              <span>${costLabel(card)}</span>
+            </div>
+            ${desc ? `<section class="dialog-section"><h3>${escapeHtml(t("baseDescription"))}</h3><p>${escapeHtml(desc)}</p></section>` : ""}
+            ${upgradeText ? `<section class="dialog-section"><h3>${escapeHtml(t("upgradeDescription"))}</h3><p>${escapeHtml(upgradeText)}</p></section>` : ""}
+            <a class="source-link" href="${cardUrl(card)}" target="_blank" rel="noreferrer">${escapeHtml(t("source"))}</a>
+          </div>
+        `;
+        els.cardDialog.showModal();
+      }
+
+      function openBuildDialog(guide, build, matches) {
+        const accent = classAccents[guide.slug] || "var(--gold)";
+        const sections = [
+          ["core", t("core")],
+          ["enablers", t("enablers")],
+          ["payoffs", t("payoffs")],
+          ["safePicks", t("safePicks")],
+          ["avoid", t("avoid")],
+        ];
+        const deckNames = new Set(state.deck.map((c) => c.name));
+        const deckAliasSet = new Set(state.deck.flatMap((c) => cardAliases(c)));
+        els.buildDialogBody.innerHTML = `
+          <div class="dialog-info">
+            <p class="eyebrow">${escapeHtml(guide.name)} · ${escapeHtml(build.label)}</p>
+            <h2>${escapeHtml(build.name)}</h2>
+            <p class="build-goal">${escapeHtml(build.goal)}</p>
+            ${sections.map(([key, label]) => {
+              const items = (build[key] || []).filter(Boolean);
+              if (!items.length) return "";
+              return `
+                <section class="dialog-section">
+                  <h3>${escapeHtml(label)}</h3>
+                  <div class="chip-row">
+                    ${items.map((name) => {
+                      const isInDeck = deckAliasSet.has(normalizeName(name));
+                      return `<span class="chip ${isInDeck ? "in-deck" : ""} ${key === "avoid" ? "is-warn" : ""}">${escapeHtml(name)}${isInDeck ? " ✓" : ""}</span>`;
+                    }).join("")}
+                  </div>
+                </section>
+              `;
+            }).join("")}
+            ${build.earlyPlan?.length ? `
+              <section class="dialog-section">
+                <h3>${escapeHtml(t("earlyPlan"))}</h3>
+                <ul class="clean-list">${build.earlyPlan.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+              </section>
+            ` : ""}
+            ${build.breakpoints?.length ? `
+              <section class="dialog-section">
+                <h3>${escapeHtml(t("breakpoints"))}</h3>
+                <ul class="clean-list">${build.breakpoints.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+              </section>
+            ` : ""}
+          </div>
+        `;
+        els.buildDialog.showModal();
+      }
+
+      function renderAll() {
+        renderStaticText();
+        renderClassTabs();
+        renderSearch();
+        renderDeck();
+        renderResults();
+      }
+
+      els.langToggle.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-lang]");
+        if (!button) return;
+        state.lang = button.dataset.lang;
+        localStorage.setItem("sts2-lang", state.lang);
+        renderAll();
+      });
+
+      els.classTabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-class]");
+        if (!button) return;
+        state.classSlug = button.dataset.class || null;
+        state.deck = [];
+        els.cardSearch.value = "";
+        renderAll();
+      });
+
+      els.cardSearch.addEventListener("input", () => {
+        state.query = els.cardSearch.value;
+        renderSearch();
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #11100f;
+    --surface: #191917;
+    --surface-2: #22201d;
+    --text: #f0eee8;
+    --muted: #bdb6a8;
+    --soft: #8d8678;
+    --line: #3a352f;
+    --line-bright: rgba(217, 178, 99, 0.28);
+    --gold: #d9b263;
+    --ironclad: #d65a45;
+    --silent: #46a96f;
+    --defect: #4d8be8;
+    --regent: #d88b35;
+    --necrobinder: #9d68d8;
+    --colorless: #c9b78d;
+    color-scheme: dark;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(217, 178, 99, 0.1), transparent 30rem),
+      radial-gradient(circle at 80% 90%, rgba(157, 104, 216, 0.08), transparent 30rem),
+      var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 78px;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--line-bright);
+    background: rgba(17, 16, 15, 0.82);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(18px);
+  }
+
+  .topbar h1 {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .home-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+  }
+
+  .topbar-center {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .nav-link,
+  .reset-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .nav-link:hover,
+  .reset-button:hover {
+    border-color: var(--gold);
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+  }
+
+  .lang-toggle button {
+    min-width: 38px;
+    min-height: 30px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .lang-toggle button.active {
+    background: var(--gold);
+    color: #18130a;
+  }
+
+  .eyebrow {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .creator-shell {
+    display: grid;
+    gap: 18px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .class-section,
+  .search-section,
+  .deck-section,
+  .results-section {
+    border: 1px solid var(--line-bright);
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 40%),
+      rgba(25, 25, 23, 0.9);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+    padding: 20px;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 14px;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 1;
+  }
+
+  .class-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+
+  .class-tab {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    transition: border-color 150ms ease, background 150ms ease;
+  }
+
+  .class-tab img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #080807;
+  }
+
+  .class-tab:hover {
+    border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+  }
+
+  .class-tab.active {
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  }
+
+  .field {
+    display: grid;
+    gap: 7px;
+  }
+
+  .field.full {
+    width: 100%;
+  }
+
+  .field span {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .field input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(16, 15, 14, 0.86);
+    color: var(--text);
+    padding: 0 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .field input:focus {
+    border-color: var(--gold);
+    outline: 2px solid rgba(217, 178, 99, 0.18);
+  }
+
+  .search-results {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .search-result {
+    display: grid;
+    grid-template-columns: 48px 1fr max-content;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--text);
+    padding: 8px 12px;
+    text-align: left;
+    transition: border-color 150ms ease, background 150ms ease;
+  }
+
+  .search-result:hover {
+    border-color: color-mix(in srgb, var(--card-accent, var(--gold)) 55%, var(--line));
+    background: color-mix(in srgb, var(--card-accent, var(--gold)) 10%, var(--surface-2));
+  }
+
+  .search-result img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #0c0b0a;
+  }
+
+  .search-result-info strong {
+    display: block;
+    font-size: 14px;
+  }
+
+  .search-result-info small {
+    color: var(--soft);
+    font-size: 12px;
+  }
+
+  .add-btn {
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 50%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--card-accent, var(--gold)) 12%, #100f0e);
+    color: var(--text);
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .deck-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .deck-header h2 {
+    margin-top: 4px;
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .deck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+
+  .deck-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 30%, var(--line));
+    border-radius: 12px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 8%, transparent), transparent 50%),
+      rgba(16, 15, 14, 0.78);
+    cursor: pointer;
+    transition: border-color 150ms ease;
+  }
+
+  .deck-card:hover {
+    border-color: color-mix(in srgb, var(--card-accent, var(--gold)) 55%, var(--line));
+  }
+
+  .deck-card img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #0c0b0a;
+    flex-shrink: 0;
+  }
+
+  .deck-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .deck-card-info strong {
+    display: block;
+    font-size: 13px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .deck-card-info small {
+    color: var(--soft);
+    font-size: 11px;
+  }
+
+  .remove-btn {
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--soft);
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    transition: border-color 150ms, color 150ms;
+  }
+
+  .remove-btn:hover {
+    border-color: var(--ironclad);
+    color: var(--ironclad);
+  }
+
+  .empty-state {
+    color: var(--soft);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .build-results {
+    display: grid;
+    gap: 14px;
+  }
+
+  .build-result {
+    display: grid;
+    gap: 10px;
+    border: 1px solid color-mix(in srgb, var(--match-accent) 34%, var(--line));
+    border-radius: 16px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--match-accent) 12%, transparent), transparent 44%),
+      rgba(16, 15, 14, 0.78);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+
+  .build-result:hover {
+    border-color: color-mix(in srgb, var(--match-accent) 60%, var(--line));
+    transform: translateY(-2px);
+  }
+
+  .build-result-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .build-result-top strong {
+    display: block;
+    font-size: 20px;
+    line-height: 1.15;
+  }
+
+  .build-result-top small {
+    display: block;
+    margin-top: 3px;
+    color: var(--soft);
+    font-size: 12px;
+  }
+
+  .build-score {
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    border: 1px solid color-mix(in srgb, var(--match-accent) 55%, var(--line));
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--match-accent) 16%, #100f0e);
+    padding: 8px 14px;
+    min-width: 80px;
+  }
+
+  .build-score span {
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 900;
+  }
+
+  .build-score small {
+    color: var(--soft);
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .build-goal {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .build-goal b {
+    color: var(--text);
+  }
+
+  .build-match-list {
+    display: grid;
+    gap: 6px;
+  }
+
+  .build-match-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 7px;
+  }
+
+  .build-match-entry span {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .build-match-entry b {
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .build-match-entry.role-core b {
+    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
+    background: color-mix(in srgb, #61b57c 16%, #100f0e);
+    color: #8eddab;
+  }
+
+  .build-match-entry.role-enablers b {
+    border: 1px solid color-mix(in srgb, #6aa3ee 55%, var(--line));
+    background: color-mix(in srgb, #6aa3ee 16%, #100f0e);
+    color: #9dc4f7;
+  }
+
+  .build-match-entry.role-payoffs b {
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+    background: color-mix(in srgb, var(--gold) 16%, #100f0e);
+    color: var(--gold);
+  }
+
+  .build-match-entry.role-safePicks b {
+    border: 1px solid var(--line);
+    background: rgba(16, 15, 14, 0.72);
+    color: var(--muted);
+  }
+
+  .build-match-entry.is-warning b {
+    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
+    background: color-mix(in srgb, #df6a58 16%, #100f0e);
+    color: #f0968a;
+  }
+
+  .color-ironclad {
+    --card-accent: var(--ironclad);
+  }
+
+  .color-silent {
+    --card-accent: var(--silent);
+  }
+
+  .color-defect {
+    --card-accent: var(--defect);
+  }
+
+  .color-regent {
+    --card-accent: var(--regent);
+  }
+
+  .color-necrobinder {
+    --card-accent: var(--necrobinder);
+  }
+
+  .color-colorless {
+    --card-accent: var(--colorless);
+  }
+
+  .build-dialog,
+  .card-dialog {
+    width: min(900px, calc(100vw - 32px));
+    max-height: min(80vh, calc(100vh - 32px));
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58);
+  }
+
+  .build-dialog::backdrop,
+  .card-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+  }
+
+  .dialog-panel {
+    position: relative;
+    max-height: inherit;
+    overflow: auto;
+  }
+
+  .dialog-close {
+    position: sticky;
+    top: 12px;
+    z-index: 2;
+    float: right;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    margin: 12px 12px 0 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .dialog-body {
+    padding: 22px;
+  }
+
+  .dialog-info {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+
+  .dialog-info h2 {
+    font-size: 30px;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+
+  .dialog-info .build-goal {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .dialog-section {
+    display: grid;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .dialog-section h3 {
+    color: var(--gold);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .dialog-section p {
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+
+  .dialog-art {
+    display: grid;
+    place-items: center;
+    align-self: start;
+    min-height: 360px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #0c0b0a;
+  }
+
+  .dialog-art img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    padding: 10px;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(16, 15, 14, 0.72);
+    color: var(--muted);
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  .chip.in-deck {
+    border-color: color-mix(in srgb, #61b57c 55%, var(--line));
+    background: color-mix(in srgb, #61b57c 14%, #100f0e);
+    color: #8eddab;
+    font-weight: 700;
+  }
+
+  .chip.is-warn {
+    border-color: color-mix(in srgb, #df6a58 45%, var(--line));
+    color: #f0968a;
+  }
+
+  .clean-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .clean-list li {
+    padding-left: 12px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .source-link {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .meta-row span {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100f0e;
+    color: var(--muted);
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 760px) {
+    .topbar,
+    .topbar-actions {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .topbar {
+      gap: 10px;
+      padding: 14px 16px;
+    }
+
+    .creator-shell {
+      padding: 16px;
+    }
+
+    .class-tabs {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .deck-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-heading h2 {
+      font-size: 22px;
+    }
+  }
+</style>

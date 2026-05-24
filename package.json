@@ -1,0 +1,21 @@
+{
+  "name": "slaythespire2",
+  "version": "1.0.0",
+  "description": "Portal interactivo de builds para Slay the Spire 2.",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "check": "astro check",
+    "refresh:data": "node scripts/fetch-spire-data.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@astrojs/check": "^0.9.9",
+    "astro": "^6.3.3",
+    "typescript": "^6.0.3"
+  }
+}

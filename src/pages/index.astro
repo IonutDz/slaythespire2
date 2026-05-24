@@ -1,0 +1,1984 @@
+---
+import spireData from "../data/spire-data.json";
+import { buildGuides } from "../data/buildGuides";
+
+const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003c");
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>STS2 Build Portal</title>
+    <meta
+      name="description"
+      content="Portal interactivo de builds y recomendaciones para Slay the Spire 2."
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="home-logo" href="/creator" title="Creador de Builds">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#d9b263"/>
+            <path d="M8 22V12l8-5 8 5v10l-8 4-8-4z" fill="#18130a" stroke="#18130a" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 7v19M8 12l8 5 8-5" stroke="#d9b263" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">STS2</span>
+        </a>
+        <div class="topbar-center">
+          <h1>Build Portal</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="nav-link" href="/cards">Cartas</a>
+          <a class="nav-link" href="/creator">Creador</a>
+          <div class="lang-toggle" id="langToggle" aria-label="Language">
+            <button type="button" data-lang="es">ES</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="rail" aria-label="Personajes">
+          <div id="classTabs" class="class-tabs"></div>
+        </aside>
+
+        <section class="workspace" aria-live="polite">
+          <section class="class-summary">
+            <div class="portrait-wrap">
+              <img id="classPortrait" class="portrait" alt="" />
+            </div>
+            <div class="summary-copy">
+              <p id="classKicker" class="eyebrow"></p>
+              <h2 id="className"></h2>
+              <p id="classIdentity" class="identity"></p>
+              <div id="classStats" class="stats-row"></div>
+            </div>
+          </section>
+
+          <section class="control-band">
+            <div class="segmented" id="modeTabs" aria-label="Tipo de plan">
+              <button type="button" data-mode="steady"></button>
+              <button type="button" data-mode="break"></button>
+              <button type="button" data-mode="multiplayer"></button>
+            </div>
+            <label class="field">
+              <span id="buildFieldLabel">Build</span>
+              <select id="buildSelect"></select>
+            </label>
+          </section>
+
+          <section class="build-grid">
+            <article class="build-main">
+              <div class="section-heading">
+                <p id="buildLabel" class="eyebrow"></p>
+                <h3 id="buildName"></h3>
+              </div>
+              <p id="buildGoal" class="lead"></p>
+              <p id="buildRole" class="role-line"></p>
+              <div id="buildMetrics" class="build-metrics"></div>
+
+              <div class="columns">
+                <div>
+                  <h4 id="earlyHeading">Plan temprano</h4>
+                  <ul id="earlyPlan" class="clean-list"></ul>
+                </div>
+                <div>
+                  <h4 id="breakpointHeading">Breakpoints</h4>
+                  <ul id="breakpoints" class="clean-list"></ul>
+                </div>
+              </div>
+
+              <div class="advice-strip">
+                <h4 id="draftHeading">Reglas de draft</h4>
+                <ul id="draftRules" class="inline-list"></ul>
+              </div>
+            </article>
+
+          </section>
+
+          <section class="cards-section">
+            <div class="section-heading">
+              <p id="realCardsKicker" class="eyebrow">Cartas reales</p>
+              <h3 id="priorityHeading">Prioridades de la build</h3>
+            </div>
+            <div id="cardGroups" class="card-groups"></div>
+          </section>
+
+          <section class="library-section">
+            <div class="library-heading">
+              <div>
+                <p id="libraryKicker" class="eyebrow">Biblioteca</p>
+                <h3 id="libraryTitle">Cartas del personaje</h3>
+              </div>
+              <label class="field compact">
+                <span id="filterFieldLabel">Filtro</span>
+                <select id="libraryFilter"></select>
+              </label>
+            </div>
+            <div id="libraryGrid" class="library-grid"></div>
+          </section>
+        </section>
+      </main>
+
+      <dialog id="cardDialog" class="card-dialog">
+        <article class="dialog-panel">
+          <button id="dialogClose" class="dialog-close" type="button" aria-label="Cerrar">x</button>
+          <div id="dialogBody" class="dialog-body"></div>
+        </article>
+      </dialog>
+    </div>
+
+    <script is:inline id="portalData" type="application/json" set:html={payload}></script>
+    <script is:inline type="module">
+      const { spireData, buildGuides } = JSON.parse(document.getElementById("portalData").textContent);
+      const IMAGE_BASE = "https://spire-codex.com";
+
+      const copy = {
+        es: {
+          data: "Datos",
+          build: "Build",
+          act: "Acto",
+          act1: "Acto 1",
+          act2: "Acto 2-3",
+          boss: "Jefe",
+          steady: "Jugar bien",
+          break: "Romper",
+          breakFull: "Romper el juego",
+          multiplayer: "Multiplayer",
+          earlyPlan: "Plan temprano",
+          breakpoints: "Breakpoints",
+          draftRules: "Reglas de draft",
+          selector: "Selector",
+          cardOffer: "Oferta de cartas",
+          searchCard: "Buscar carta",
+          searchPlaceholder: "Ej. Atormentar, Glaciar, Danza de cuchillos",
+          type: "Tipo",
+          rarity: "Rareza",
+          cost: "Coste",
+          character: "Clase",
+          realCards: "Cartas reales",
+          buildPriorities: "Prioridades de la build",
+          library: "Biblioteca",
+          filter: "Filtro",
+          all: "Todas",
+          attacks: "Ataques",
+          skills: "Habilidades",
+          powers: "Poderes",
+          cardsLower: "cartas",
+          remove: "quitar",
+          emptyOffer: "Añade cartas de la oferta para ordenar el pick.",
+          hp: "HP",
+          gold: "Oro",
+          energy: "Energía",
+          orbs: "Orbs",
+          core: "Núcleo",
+          enablers: "Habilitadoras",
+          payoffs: "Pagos",
+          safePicks: "Picks seguros",
+          avoid: "Evitar en este plan",
+          metricCore: "núcleo",
+          metricSafe: "seguros",
+          metricAvoid: "evitar",
+          reasonCore: "pieza núcleo",
+          reasonEnabler: "habilita el plan",
+          reasonPayoff: "payoff fuerte",
+          reasonSafe: "pick seguro",
+          reasonAvoid: "evitar en esta build",
+          reasonDamage: "daño temprano",
+          reasonSlow: "lenta para Acto 1",
+          reasonAoe: "AoE útil",
+          reasonDraw: "robo",
+          reasonBossScale: "escala en jefe",
+          reasonBossDebuff: "debuff de jefe",
+          reasonNeutral: "neutral",
+          allCardsNav: "Todas las cartas",
+          details: "Detalle",
+          close: "Cerrar",
+          baseDescription: "Descripción",
+          upgradeDescription: "Mejora",
+          stats: "Datos",
+          englishName: "Nombre EN",
+          source: "Abrir en Spire Codex",
+          generatedCards: "Genera",
+          keywords: "Keywords",
+          noDescription: "Sin descripción.",
+          target: "Objetivo",
+          damage: "Daño",
+          block: "Bloqueo",
+          hits: "Golpes",
+          draw: "Robo",
+        },
+        en: {
+          data: "Data",
+          build: "Build",
+          act: "Act",
+          act1: "Act 1",
+          act2: "Act 2-3",
+          boss: "Boss",
+          steady: "Play Well",
+          break: "Break",
+          breakFull: "Break the Game",
+          multiplayer: "Multiplayer",
+          earlyPlan: "Early Plan",
+          breakpoints: "Breakpoints",
+          draftRules: "Draft Rules",
+          selector: "Picker",
+          cardOffer: "Card Offer",
+          searchCard: "Search card",
+          searchPlaceholder: "E.g. Haunt, Glacier, Blade Dance",
+          type: "Type",
+          rarity: "Rarity",
+          cost: "Cost",
+          character: "Class",
+          realCards: "Real Cards",
+          buildPriorities: "Build Priorities",
+          library: "Library",
+          filter: "Filter",
+          all: "All",
+          attacks: "Attacks",
+          skills: "Skills",
+          powers: "Powers",
+          cardsLower: "cards",
+          remove: "remove",
+          emptyOffer: "Add cards from the offer to rank the pick.",
+          hp: "HP",
+          gold: "Gold",
+          energy: "Energy",
+          orbs: "Orbs",
+          core: "Core",
+          enablers: "Enablers",
+          payoffs: "Payoffs",
+          safePicks: "Safe Picks",
+          avoid: "Avoid for this plan",
+          metricCore: "core",
+          metricSafe: "safe",
+          metricAvoid: "avoid",
+          reasonCore: "core piece",
+          reasonEnabler: "enables the plan",
+          reasonPayoff: "strong payoff",
+          reasonSafe: "safe pick",
+          reasonAvoid: "avoid in this build",
+          reasonDamage: "early damage",
+          reasonSlow: "slow for Act 1",
+          reasonAoe: "useful AoE",
+          reasonDraw: "card draw",
+          reasonBossScale: "boss scaling",
+          reasonBossDebuff: "boss debuff",
+          reasonNeutral: "neutral",
+          allCardsNav: "All Cards",
+          details: "Details",
+          close: "Close",
+          baseDescription: "Description",
+          upgradeDescription: "Upgrade",
+          stats: "Stats",
+          englishName: "ES name",
+          source: "Open in Spire Codex",
+          generatedCards: "Spawns",
+          keywords: "Keywords",
+          noDescription: "No description.",
+          target: "Target",
+          damage: "Damage",
+          block: "Block",
+          hits: "Hits",
+          draw: "Draw",
+        },
+      };
+
+      const classCopyEn = {
+        ironclad: {
+          identity: "Front-loaded damage, Exhaust engines, Vulnerable, Strength scaling, and heavy block.",
+          multiplayerAdvice:
+            "In multiplayer he can carry or tank. He is excellent at absorbing pressure when Tank, Demonic Shield, Barricade, or heavy block show up.",
+          draftRules: [
+            "Act 1: take real damage before slow engines. Bludgeon, Hemokinesis, Cinder, Pommel Strike, and Thunderclap stabilize early fights.",
+            "Do not mix too many engines. Exhaust, Vulnerable, HP loss, and Barricade each want different support.",
+            "If the team already has damage, prioritize block, Vulnerable, and ally protection.",
+          ],
+        },
+        silent: {
+          identity: "Poison, Shivs, discard, draw, Weak, Intangible, and Dexterity-based mitigation.",
+          multiplayerAdvice:
+            "In a team she shines as a debuffer and long-turn carry. Poison wins bosses, Shivs win rooms, and Flanking or Weak multiplies allied damage.",
+          draftRules: [
+            "Act 1: take immediate damage. Blade Dance, Dagger Spray, Dash, Predator, and Poisoned Stab are solid starts.",
+            "Poison and Shivs compete for power slots. Pick a base plan and use the other as a bridge.",
+            "Discard without payoffs is filtering; with Tactician, Reflex, or Tools of the Trade it becomes an engine.",
+          ],
+        },
+        defect: {
+          identity: "Orbs, Focus, Powers, shared energy, zero-cost loops, and Status-card engines.",
+          multiplayerAdvice:
+            "In multiplayer Defect is a strong battery and scaler. Energy Surge and Ignition can turn allied turns into winning turns.",
+          draftRules: [
+            "Act 1: do not wait for Focus to kill things. Ball Lightning, Cold Snap, Sunder, Sweeping Beam, and Compile Driver stabilize.",
+            "Focus without orbs does nothing; orbs without Focus scale less. Draft both sides.",
+            "Powers are strong, but you still need to survive the turn you play them.",
+          ],
+        },
+        regent: {
+          identity: "Star resource, Forge, created cards, Sovereign Blade, and royal support for allies.",
+          multiplayerAdvice:
+            "In multiplayer Regent is a powerful facilitator: shared Forge, Colorless cards for allies, and AoE debuffs. He can also carry with Genesis or The Sealed Throne.",
+          draftRules: [
+            "Act 1: Solar Strike, Astral Pulse, Guiding Star, Devastate, and Gamma Blast provide real tempo.",
+            "Forge needs Sovereign Blade to show up, or Summon Forth to find it.",
+            "Star is a combo resource. If you only stockpile it without spending well, the deck loses turns.",
+          ],
+        },
+        necrobinder: {
+          identity: "Osty, Souls, Doom, Ethereal cards, debuffs, and calculated sacrifice.",
+          multiplayerAdvice:
+            "In multiplayer she can carry with Doom/Souls or support with Legion of Bone, Glimpse Beyond, and strong debuffs. Osty lets you split damage and defense in a unique way.",
+          draftRules: [
+            "Act 1: you need damage and survival. Defile, Reap, Fear, Flatten, Poke, and Negative Pulse are strong starts.",
+            "Souls, Doom, Ethereal, and Osty are different plans. You can overlap them, but choose one win condition.",
+            "Summon is not just defense: with Calcify, Sic 'Em, Squeeze, or Necro Mastery it becomes damage.",
+          ],
+        },
+      };
+
+      function t(key) {
+        return copy[state.lang]?.[key] || copy.es[key] || key;
+      }
+
+      function modeLabel(mode, full = false) {
+        if (mode === "break") return t(full ? "breakFull" : "break");
+        return t(mode);
+      }
+
+      const state = {
+        classSlug: "necrobinder",
+        mode: "break",
+        buildId: null,
+        libraryFilter: "all",
+        activeCardId: null,
+        lang: localStorage.getItem("sts2-lang") || "es",
+      };
+
+      const els = {
+        langToggle: document.getElementById("langToggle"),
+        classTabs: document.getElementById("classTabs"),
+        modeTabs: document.getElementById("modeTabs"),
+        buildSelect: document.getElementById("buildSelect"),
+        buildFieldLabel: document.getElementById("buildFieldLabel"),
+        classPortrait: document.getElementById("classPortrait"),
+        classKicker: document.getElementById("classKicker"),
+        className: document.getElementById("className"),
+        classIdentity: document.getElementById("classIdentity"),
+        classStats: document.getElementById("classStats"),
+        buildLabel: document.getElementById("buildLabel"),
+        buildName: document.getElementById("buildName"),
+        buildGoal: document.getElementById("buildGoal"),
+        buildRole: document.getElementById("buildRole"),
+        buildMetrics: document.getElementById("buildMetrics"),
+        earlyHeading: document.getElementById("earlyHeading"),
+        breakpointHeading: document.getElementById("breakpointHeading"),
+        draftHeading: document.getElementById("draftHeading"),
+        earlyPlan: document.getElementById("earlyPlan"),
+        breakpoints: document.getElementById("breakpoints"),
+        draftRules: document.getElementById("draftRules"),
+        cardGroups: document.getElementById("cardGroups"),
+        realCardsKicker: document.getElementById("realCardsKicker"),
+        priorityHeading: document.getElementById("priorityHeading"),
+        libraryKicker: document.getElementById("libraryKicker"),
+        libraryTitle: document.getElementById("libraryTitle"),
+        filterFieldLabel: document.getElementById("filterFieldLabel"),
+        libraryFilter: document.getElementById("libraryFilter"),
+        libraryGrid: document.getElementById("libraryGrid"),
+        cardDialog: document.getElementById("cardDialog"),
+        dialogBody: document.getElementById("dialogBody"),
+        dialogClose: document.getElementById("dialogClose"),
+      };
+
+      const allCards = spireData.allCards || Object.values(spireData.cardsByClass).flat();
+      const charactersBySlug = Object.fromEntries(
+        spireData.characters.map((character) => [character.id.toLowerCase(), character])
+      );
+
+      function cardsForClass(slug = state.classSlug) {
+        return spireData.cardsByClass[slug] || [];
+      }
+
+      function guideForClass(slug = state.classSlug) {
+        return buildGuides[slug];
+      }
+
+      function activeBuild() {
+        const guide = guideForClass();
+        const builds = guide.builds.filter((build) => build.mode === state.mode);
+        if (!builds.some((build) => build.id === state.buildId)) {
+          state.buildId = builds[0]?.id || guide.builds[0].id;
+        }
+        return guide.builds.find((build) => build.id === state.buildId) || guide.builds[0];
+      }
+
+      function englishList(items, limit = 3) {
+        const picked = items.slice(0, limit);
+        if (picked.length <= 1) return picked.join("");
+        return `${picked.slice(0, -1).join(", ")} and ${picked.at(-1)}`;
+      }
+
+      function classCopy() {
+        const guide = guideForClass();
+        return state.lang === "en" ? classCopyEn[state.classSlug] : guide;
+      }
+
+      function buildGoal(build) {
+        if (state.lang === "es") return localizeNamesInText(build.goal);
+        return `Build around ${englishList(build.core)}. Use ${englishList(build.enablers)} to enable the plan, then close fights with ${englishList(build.payoffs)}.`;
+      }
+
+      function buildRole(build) {
+        if (state.lang === "es") return localizeNamesInText(build.multiplayerRole);
+        if (build.mode === "multiplayer") {
+          return "Multiplayer role: support the team first, then convert the shared resources into a winning turn.";
+        }
+        if (build.mode === "break") {
+          return "Multiplayer role: protect the engine pieces, coordinate targets, and take over once the loop is online.";
+        }
+        return "Multiplayer role: stable carry or flex slot that keeps the run consistent while the team scales.";
+      }
+
+      function buildEarlyPlan(build) {
+        if (state.lang === "es") return build.earlyPlan.map(localizeNamesInText);
+        return [
+          `Before forcing ${build.name}, take enough damage and block to survive Act 1.`,
+          `Prioritize core pieces: ${englishList(build.core)}.`,
+          `When the offer misses the engine, take safe cards like ${englishList(build.safePicks)}.`,
+        ];
+      }
+
+      function buildBreakpoints(build) {
+        if (state.lang === "es") return build.breakpoints.map(localizeNamesInText);
+        return [
+          `${englishList(build.core, 2)} is the first real signal that the build is open.`,
+          `${englishList(build.enablers, 2)} turns the plan from a pile of cards into an engine.`,
+          `${englishList(build.payoffs, 2)} is how the deck converts setup into lethal or full control.`,
+        ];
+      }
+
+      function cardByName(name) {
+        return cardsForClass().find((card) => card.name.toLowerCase() === name.toLowerCase());
+      }
+
+      function cardById(id) {
+        return allCards.find((card) => card.id === id);
+      }
+
+      function normalizeUrl(url) {
+        if (!url) return "";
+        return url.startsWith("http") ? url : `${IMAGE_BASE}${url}`;
+      }
+
+      function cleanText(text = "") {
+        return text
+          .replace(/\[gold\]|\[\/gold\]/g, "")
+          .replace(/\[energy:(\d)\]/g, "$1E")
+          .replace(/\[star:(\d)\]/g, "$1S")
+          .replace(/\[purple\]|\[\/purple\]/g, "")
+          .replace(/\n/g, " ");
+      }
+
+      function escapeHtml(value = "") {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function fold(value = "") {
+        return String(value)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+      }
+
+      function localizedCard(card) {
+        return state.lang === "es" ? card.localized?.es : null;
+      }
+
+      function cardName(card) {
+        return localizedCard(card)?.name || card.name;
+      }
+
+      function cardDescription(card) {
+        return localizedCard(card)?.description || card.description;
+      }
+
+      function cardUpgradeDescription(card) {
+        return localizedCard(card)?.upgrade_description || card.upgrade_description || "";
+      }
+
+      function cardType(card) {
+        return localizedCard(card)?.type || typeLabel(card.type);
+      }
+
+      function cardRarity(card) {
+        return localizedCard(card)?.rarity || card.rarity;
+      }
+
+      function cardSlug(card) {
+        const image = card.image_url || "";
+        return image.split("/").pop()?.replace(/\.(webp|png|jpg|jpeg)$/i, "") || card.id.toLowerCase();
+      }
+
+      function cardUrl(card) {
+        const prefix = state.lang === "es" ? "/esp" : "";
+        return `${IMAGE_BASE}${prefix}/cards/${cardSlug(card)}`;
+      }
+
+      function compactList(value) {
+        if (!value) return "";
+        if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+        return String(value);
+      }
+
+      function statRows(card) {
+        return [
+          [t("character"), guideForClass().name],
+          [t("type"), cardType(card)],
+          [t("rarity"), cardRarity(card)],
+          [t("cost"), costLabel(card)],
+          [t("target"), card.target],
+          [t("damage"), card.damage],
+          [t("block"), card.block],
+          [t("hits"), card.hit_count],
+          [t("draw"), card.cards_draw],
+          [t("energy"), card.energy_gain],
+          [t("hp"), card.hp_loss],
+          [t("generatedCards"), compactList(card.spawns_cards)],
+          [t("keywords"), compactList(card.keywords)],
+        ].filter(([, value]) => value !== null && value !== undefined && value !== "");
+      }
+
+      function renderCardDialog(card) {
+        const name = cardName(card);
+        const englishHint = state.lang === "es" && name !== card.name ? card.name : "";
+        const spanishHint = state.lang === "en" && card.localized?.es?.name ? card.localized.es.name : "";
+        const description = cleanText(cardDescription(card)) || t("noDescription");
+        const upgrade = cleanText(cardUpgradeDescription(card));
+        els.dialogBody.innerHTML = `
+          <div class="dialog-art">
+            <img src="${normalizeUrl(card.image_url)}" alt="${escapeHtml(name)}" />
+          </div>
+          <div class="dialog-copy">
+            <div class="dialog-title-row">
+              <div>
+                <p class="eyebrow">${escapeHtml(guideForClass().name)}</p>
+                <h2>${escapeHtml(name)}</h2>
+                ${englishHint ? `<small>${escapeHtml(t("englishName"))}: ${escapeHtml(englishHint)}</small>` : ""}
+                ${spanishHint ? `<small>${escapeHtml(t("englishName"))}: ${escapeHtml(spanishHint)}</small>` : ""}
+              </div>
+              <b>${escapeHtml(costLabel(card))}</b>
+            </div>
+            <div class="meta-row">
+              <span>${escapeHtml(cardType(card))}</span>
+              <span>${escapeHtml(cardRarity(card))}</span>
+              <span>${escapeHtml(guideForClass().name)}</span>
+            </div>
+            <section class="text-block">
+              <h3>${escapeHtml(t("baseDescription"))}</h3>
+              <p>${escapeHtml(description)}</p>
+            </section>
+            ${
+              upgrade
+                ? `<section class="text-block"><h3>${escapeHtml(t("upgradeDescription"))}</h3><p>${escapeHtml(upgrade)}</p></section>`
+                : ""
+            }
+            <section class="stat-block">
+              <h3>${escapeHtml(t("stats"))}</h3>
+              <div class="stat-grid">
+                ${statRows(card)
+                  .map(([label, value]) => `<span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong>`)
+                  .join("")}
+              </div>
+            </section>
+            <a class="source-button" href="${cardUrl(card)}" target="_blank" rel="noreferrer">${escapeHtml(t("source"))}</a>
+          </div>
+        `;
+      }
+
+      function openCardDialog(card) {
+        state.activeCardId = card.id;
+        renderCardDialog(card);
+        if (typeof els.cardDialog.showModal === "function") {
+          els.cardDialog.showModal();
+        } else {
+          els.cardDialog.setAttribute("open", "");
+        }
+      }
+
+      function localizeNamesInText(text = "") {
+        if (state.lang !== "es") return text;
+        const localized = cardsForClass()
+          .filter((card) => localizedCard(card)?.name && localizedCard(card).name !== card.name)
+          .sort((a, b) => b.name.length - a.name.length)
+          .reduce((result, card) => result.split(card.name).join(localizedCard(card).name), text);
+        return polishSpanishText(localized);
+      }
+
+      function polishSpanishText(text = "") {
+        const replacements = [
+          [/\bdano\b/g, "daño"],
+          [/\bDano\b/g, "Daño"],
+          [/\benergia\b/g, "energía"],
+          [/\bEnergia\b/g, "Energía"],
+          [/\bproteccion\b/g, "protección"],
+          [/\bProteccion\b/g, "Protección"],
+          [/\bpresion\b/g, "presión"],
+          [/\bPresion\b/g, "Presión"],
+          [/\btambien\b/g, "también"],
+          [/\bTambien\b/g, "También"],
+          [/\bmas\b/g, "más"],
+          [/\bMas\b/g, "Más"],
+          [/\bmultiples\b/g, "múltiples"],
+          [/\bMultiples\b/g, "Múltiples"],
+          [/\bcondicion\b/g, "condición"],
+          [/\bCondicion\b/g, "Condición"],
+          [/\bsolidos\b/g, "sólidos"],
+          [/\bSolidos\b/g, "Sólidos"],
+          [/\butil\b/g, "útil"],
+          [/\bUtil\b/g, "Útil"],
+          [/\butiles\b/g, "útiles"],
+          [/\bUtiles\b/g, "Útiles"],
+          [/\bfacil\b/g, "fácil"],
+          [/\bFacil\b/g, "Fácil"],
+          [/\btecnico\b/g, "técnico"],
+          [/\bTecnico\b/g, "Técnico"],
+          [/\btecnica\b/g, "técnica"],
+          [/\bTecnica\b/g, "Técnica"],
+          [/\bunico\b/g, "único"],
+          [/\bUnico\b/g, "Único"],
+          [/\bversion\b/g, "versión"],
+          [/\bVersion\b/g, "Versión"],
+          [/\bcomunicacion\b/g, "comunicación"],
+          [/\bComunicacion\b/g, "Comunicación"],
+          [/\bcuracion\b/g, "curación"],
+          [/\bCuracion\b/g, "Curación"],
+          [/\bperdida\b/g, "pérdida"],
+          [/\bPerdida\b/g, "Pérdida"],
+          [/\bperdidas\b/g, "pérdidas"],
+          [/\bPerdidas\b/g, "Pérdidas"],
+          [/\baccion\b/g, "acción"],
+          [/\bAccion\b/g, "Acción"],
+        ];
+        return replacements.reduce((result, [pattern, replacement]) => result.replace(pattern, replacement), text);
+      }
+
+      function costLabel(card) {
+        if (card.is_x_cost || card.cost === -1) return "X";
+        if (card.is_x_star_cost) return "XS";
+        if (card.star_cost) return `${card.star_cost}S`;
+        return String(card.cost);
+      }
+
+      function listHtml(items) {
+        return items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+      }
+
+      function typeLabel(type) {
+        if (state.lang === "en") return type;
+        return { Attack: "Ataque", Skill: "Habilidad", Power: "Poder" }[type] || type;
+      }
+
+      function renderStaticText() {
+        document.documentElement.lang = state.lang;
+        els.dialogClose.setAttribute("aria-label", t("close"));
+        els.langToggle.querySelectorAll("button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.lang === state.lang);
+          button.setAttribute("aria-pressed", String(button.dataset.lang === state.lang));
+        });
+        els.buildFieldLabel.textContent = t("build");
+        els.earlyHeading.textContent = t("earlyPlan");
+        els.breakpointHeading.textContent = t("breakpoints");
+        els.draftHeading.textContent = t("draftRules");
+        els.realCardsKicker.textContent = t("realCards");
+        els.priorityHeading.textContent = t("buildPriorities");
+        els.libraryKicker.textContent = t("library");
+        els.filterFieldLabel.textContent = t("filter");
+        els.libraryFilter.innerHTML = `
+          <option value="all">${t("all")}</option>
+          <option value="Attack">${t("attacks")}</option>
+          <option value="Skill">${t("skills")}</option>
+          <option value="Power">${t("powers")}</option>
+        `;
+        els.libraryFilter.value = state.libraryFilter;
+      }
+
+      function renderClassTabs() {
+        els.classTabs.innerHTML = spireData.characters
+          .map((character) => {
+            const slug = character.id.toLowerCase();
+            const guide = buildGuides[slug];
+            const active = slug === state.classSlug ? "active" : "";
+            return `
+              <button type="button" class="class-tab ${active}" data-class="${slug}" style="--accent:${guide.accent}" aria-pressed="${slug === state.classSlug}">
+                <img src="${normalizeUrl(character.image_url)}" alt="" />
+                <span>${character.name.replace("The ", "")}</span>
+              </button>
+            `;
+          })
+          .join("");
+      }
+
+      function renderModes() {
+        [...els.modeTabs.querySelectorAll("button")].forEach((button) => {
+          button.textContent = modeLabel(button.dataset.mode);
+          button.classList.toggle("active", button.dataset.mode === state.mode);
+          button.setAttribute("aria-pressed", String(button.dataset.mode === state.mode));
+        });
+      }
+
+      function renderBuildSelect() {
+        const guide = guideForClass();
+        const options = guide.builds
+          .filter((build) => build.mode === state.mode)
+          .map((build) => `<option value="${build.id}">${build.name}</option>`)
+          .join("");
+        els.buildSelect.innerHTML = options;
+        els.buildSelect.value = activeBuild().id;
+      }
+
+      function renderSummary() {
+        const guide = guideForClass();
+        const character = charactersBySlug[state.classSlug];
+        const localizedClass = classCopy();
+        document.documentElement.style.setProperty("--class-accent", guide.accent);
+        els.classPortrait.src = normalizeUrl(character.image_url);
+        els.classPortrait.alt = character.name;
+        els.classKicker.textContent = modeLabel(state.mode, true);
+        els.className.textContent = character.name;
+        els.classIdentity.textContent = localizedClass.identity;
+        const orbText = character.orb_slots ? `<span>${t("orbs")} ${character.orb_slots}</span>` : "";
+        els.classStats.innerHTML = `
+          <span>${t("hp")} ${character.starting_hp}</span>
+          <span>${t("gold")} ${character.starting_gold}</span>
+          <span>${t("energy")} ${character.max_energy}</span>
+          ${orbText}
+        `;
+      }
+
+      function renderBuild() {
+        const build = activeBuild();
+        const localizedClass = classCopy();
+        els.buildLabel.textContent = state.lang === "es" ? build.label : modeLabel(build.mode, true);
+        els.buildName.textContent = build.name;
+        els.buildGoal.textContent = buildGoal(build);
+        els.buildRole.textContent = buildRole(build);
+        els.buildMetrics.innerHTML = `
+          <span>${build.core.length} ${t("metricCore")}</span>
+          <span>${build.safePicks.length} ${t("metricSafe")}</span>
+          <span>${build.avoid.length} ${t("metricAvoid")}</span>
+        `;
+        els.earlyPlan.innerHTML = listHtml(buildEarlyPlan(build));
+        els.breakpoints.innerHTML = listHtml(buildBreakpoints(build));
+        els.draftRules.innerHTML = listHtml(localizedClass.draftRules.map(localizeNamesInText));
+      }
+
+      function renderCardGroups() {
+        const build = activeBuild();
+        const groups = [
+          [t("core"), build.core],
+          [t("enablers"), build.enablers],
+          [t("payoffs"), build.payoffs],
+          [t("safePicks"), build.safePicks],
+          [t("avoid"), build.avoid],
+        ];
+        els.cardGroups.innerHTML = groups
+          .map(([title, names]) => {
+            const cards = names
+              .map((name) => cardByName(name))
+              .filter(Boolean)
+              .map(cardCard)
+              .join("");
+            const missing = names
+              .filter((name) => !cardByName(name))
+              .map((name) => `<span class="missing-card">${name}</span>`)
+              .join("");
+            return `
+              <section class="card-group">
+                <h4>${title}</h4>
+                <div class="priority-row">${cards}${missing}</div>
+              </section>
+            `;
+          })
+          .join("");
+      }
+
+      function cardCard(card) {
+        const name = cardName(card);
+        return `
+          <button class="card-tile" type="button" data-card-id="${escapeHtml(card.id)}" title="${escapeHtml(cleanText(cardDescription(card)))}">
+            <img src="${normalizeUrl(card.image_url)}" alt="${escapeHtml(name)}" loading="lazy" />
+            <div class="card-meta">
+              <span>${escapeHtml(name)}</span>
+              <b>${costLabel(card)}</b>
+            </div>
+          </button>
+        `;
+      }
+
+      function renderLibrary() {
+        const cards = cardsForClass().filter((card) => {
+          return state.libraryFilter === "all" || card.type === state.libraryFilter;
+        });
+        els.libraryTitle.textContent = `${guideForClass().name}: ${cards.length} ${t("cardsLower")}`;
+        els.libraryGrid.innerHTML = cards
+          .map(
+            (card) => {
+              const englishHint = state.lang === "es" && cardName(card) !== card.name ? ` · ${card.name}` : "";
+              return `
+              <button class="library-card" type="button" data-card-id="${escapeHtml(card.id)}" aria-label="${escapeHtml(cardName(card))}">
+                <img src="${normalizeUrl(card.image_url)}" alt="${escapeHtml(cardName(card))}" loading="lazy" />
+                <div>
+                  <div class="lib-title">
+                    <h4>${escapeHtml(cardName(card))}</h4>
+                    <span>${costLabel(card)}</span>
+                  </div>
+                  <p>${escapeHtml(cleanText(cardDescription(card)))}</p>
+                  <small>${escapeHtml(cardRarity(card))} ${escapeHtml(cardType(card))}${escapeHtml(englishHint)}</small>
+                </div>
+              </button>
+            `;
+            }
+          )
+          .join("");
+      }
+
+      function renderAll() {
+        renderStaticText();
+        renderClassTabs();
+        renderModes();
+        renderBuildSelect();
+        renderSummary();
+        renderBuild();
+        renderCardGroups();
+        renderLibrary();
+      }
+
+      els.classTabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-class]");
+        if (!button) return;
+        state.classSlug = button.dataset.class;
+        const guide = guideForClass();
+        if (!guide.builds.some((build) => build.mode === state.mode)) {
+          state.mode = guide.builds[0].mode;
+        }
+        state.buildId = guide.builds.find((build) => build.mode === state.mode)?.id || guide.builds[0].id;
+        renderAll();
+      });
+
+      els.modeTabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-mode]");
+        if (!button) return;
+        state.mode = button.dataset.mode;
+        state.buildId = guideForClass().builds.find((build) => build.mode === state.mode)?.id || null;
+        renderAll();
+      });
+
+      els.buildSelect.addEventListener("change", () => {
+        state.buildId = els.buildSelect.value;
+        renderAll();
+      });
+
+      els.libraryFilter.addEventListener("change", () => {
+        state.libraryFilter = els.libraryFilter.value;
+        renderLibrary();
+      });
+
+      els.cardGroups.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-card-id]");
+        if (!button) return;
+        const card = cardById(button.dataset.cardId);
+        if (card) openCardDialog(card);
+      });
+
+      els.libraryGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-card-id]");
+        if (!button) return;
+        const card = cardById(button.dataset.cardId);
+        if (card) openCardDialog(card);
+      });
+
+      els.dialogClose.addEventListener("click", () => {
+        els.cardDialog.close();
+        state.activeCardId = null;
+      });
+
+      els.cardDialog.addEventListener("click", (event) => {
+        if (event.target === els.cardDialog) {
+          els.cardDialog.close();
+          state.activeCardId = null;
+        }
+      });
+
+      els.cardDialog.addEventListener("close", () => {
+        state.activeCardId = null;
+      });
+
+      els.langToggle.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-lang]");
+        if (!button) return;
+        state.lang = button.dataset.lang;
+        localStorage.setItem("sts2-lang", state.lang);
+        renderAll();
+        if (els.cardDialog.open && state.activeCardId) {
+          const card = cardById(state.activeCardId);
+          if (card) renderCardDialog(card);
+        }
+      });
+
+      renderAll();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #11100f;
+    --surface: #191917;
+    --surface-2: #22201d;
+    --surface-3: #2b2924;
+    --surface-glow: #181510;
+    --text: #f0eee8;
+    --muted: #bdb6a8;
+    --soft: #8d8678;
+    --line: #3a352f;
+    --gold: #d9b263;
+    --green: #61b57c;
+    --blue: #6aa3ee;
+    --red: #df6a58;
+    --class-accent: #9d68d8;
+    color-scheme: dark;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(90deg, rgba(157, 104, 216, 0.08), transparent 34%, rgba(70, 169, 111, 0.05)),
+      linear-gradient(180deg, rgba(217, 178, 99, 0.06), transparent 330px),
+      var(--bg);
+    color: var(--text);
+    letter-spacing: 0;
+    overflow-x: hidden;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  a {
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  .app-shell {
+    min-height: 100vh;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 78px;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(17, 16, 15, 0.92);
+    backdrop-filter: blur(12px);
+  }
+
+  .topbar h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
+
+  .topbar h1 {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .home-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+  }
+
+  .topbar-center {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+  }
+
+  .lang-toggle button {
+    min-width: 38px;
+    min-height: 30px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .lang-toggle button.active {
+    background: var(--gold);
+    color: #18130a;
+  }
+
+  .eyebrow {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .source-line {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .nav-link:hover {
+    border-color: var(--gold);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    min-height: calc(100vh - 78px);
+  }
+
+  .rail {
+    min-width: 0;
+    border-right: 1px solid var(--line);
+    background: rgba(20, 19, 17, 0.9);
+    padding: 18px;
+  }
+
+  .class-tabs {
+    position: sticky;
+    top: 92px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .class-tab {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 58px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    transition:
+      border-color 150ms ease,
+      background 150ms ease,
+      transform 150ms ease;
+  }
+
+  .class-tab:hover {
+    border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+    transform: translateX(2px);
+  }
+
+  .class-tab img {
+    width: 42px;
+    height: 42px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #080807;
+  }
+
+  .class-tab span {
+    font-weight: 700;
+  }
+
+  .class-tab.active {
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  }
+
+  .workspace {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+    padding: 24px;
+  }
+
+  .class-summary {
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--class-accent) 22%, transparent), transparent 42%),
+      linear-gradient(180deg, var(--surface-glow), var(--surface));
+  }
+
+  .portrait-wrap {
+    width: 148px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--class-accent) 70%, var(--line));
+    border-radius: 8px;
+    background: var(--surface-2);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+  }
+
+  .portrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .summary-copy {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .summary-copy h2 {
+    font-size: 42px;
+    line-height: 1;
+  }
+
+  .identity {
+    max-width: 900px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stats-row span,
+  .chip,
+  .missing-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  .stats-row span {
+    background: rgba(10, 9, 8, 0.72);
+  }
+
+  .control-band {
+    display: grid;
+    grid-template-columns: max-content minmax(220px, 360px);
+    align-items: end;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(25, 25, 23, 0.92);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  }
+
+  .segmented {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100f0e;
+  }
+
+  .segmented button {
+    min-height: 38px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    padding: 0 12px;
+    font-weight: 700;
+  }
+
+  .segmented button.active {
+    background: var(--class-accent);
+    color: #fff;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--class-accent) 30%, transparent);
+  }
+
+  .field {
+    display: grid;
+    gap: 7px;
+  }
+
+  .field span {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100f0e;
+    color: var(--text);
+    padding: 0 12px;
+  }
+
+  .field input:focus,
+  .field select:focus {
+    border-color: color-mix(in srgb, var(--class-accent) 75%, var(--line));
+    outline: 2px solid color-mix(in srgb, var(--class-accent) 20%, transparent);
+  }
+
+  .field.full {
+    width: 100%;
+  }
+
+  .build-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .build-main,
+  .offer-panel,
+  .cards-section,
+  .library-section {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 16px 46px rgba(0, 0, 0, 0.16);
+  }
+
+  .build-main,
+  .offer-panel {
+    padding: 18px;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 14px;
+  }
+
+  .section-heading h3 {
+    font-size: 22px;
+    line-height: 1.15;
+  }
+
+  .lead {
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1.55;
+    max-width: 950px;
+    overflow-wrap: anywhere;
+  }
+
+  .role-line {
+    margin-top: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .build-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .build-metrics span {
+    border: 1px solid color-mix(in srgb, var(--class-accent) 46%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--class-accent) 12%, #100f0e);
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .columns h4,
+  .advice-strip h4,
+  .card-group h4 {
+    margin-bottom: 10px;
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  .clean-list,
+  .inline-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .clean-list li,
+  .inline-list li {
+    padding-left: 12px;
+    border-left: 2px solid color-mix(in srgb, var(--class-accent) 75%, var(--line));
+  }
+
+  .advice-strip {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .search-results {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .search-results button {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    padding: 9px 10px;
+    text-align: left;
+    transition:
+      border-color 150ms ease,
+      background 150ms ease;
+  }
+
+  .search-results button:hover {
+    border-color: color-mix(in srgb, var(--class-accent) 65%, var(--line));
+    background: color-mix(in srgb, var(--class-accent) 12%, var(--surface-2));
+  }
+
+  .search-results small {
+    color: var(--soft);
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 38px;
+    margin-top: 12px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chip span {
+    color: var(--soft);
+    font-size: 11px;
+    text-transform: none;
+  }
+
+  .ranking {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .empty-state {
+    color: var(--soft);
+    line-height: 1.45;
+  }
+
+  .rank-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #11100f;
+  }
+
+  .rank-row strong,
+  .rank-row > span {
+    color: var(--gold);
+    font-weight: 800;
+  }
+
+  .rank-row h4 {
+    margin: 0 0 2px;
+    font-size: 14px;
+  }
+
+  .rank-row p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .cards-section,
+  .library-section {
+    padding: 18px;
+  }
+
+  .card-groups {
+    display: grid;
+    gap: 18px;
+  }
+
+  .card-group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .priority-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 12px;
+  }
+
+  .card-tile {
+    display: grid;
+    grid-template-rows: 184px minmax(42px, auto);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0c0b0a;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    transition:
+      border-color 150ms ease,
+      transform 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .card-tile:hover {
+    border-color: color-mix(in srgb, var(--class-accent) 65%, var(--line));
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+    transform: translateY(-2px);
+  }
+
+  .card-tile:focus-visible {
+    border-color: var(--class-accent);
+    outline: 2px solid color-mix(in srgb, var(--class-accent) 30%, transparent);
+  }
+
+  .card-tile img {
+    width: 100%;
+    height: 184px;
+    object-fit: contain;
+    padding: 7px;
+  }
+
+  .card-meta {
+    display: grid;
+    grid-template-columns: 1fr 28px;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 8px 9px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  .card-meta span {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .card-meta b {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--class-accent);
+    color: #fff;
+    font-size: 12px;
+  }
+
+  .missing-card {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+  }
+
+  .card-dialog {
+    width: min(1120px, calc(100vw - 32px));
+    max-height: min(860px, calc(100vh - 32px));
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0;
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58);
+  }
+
+  .card-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+  }
+
+  .dialog-panel {
+    position: relative;
+    max-height: inherit;
+    overflow: auto;
+  }
+
+  .dialog-close {
+    position: sticky;
+    top: 12px;
+    z-index: 2;
+    float: right;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    margin: 12px 12px 0 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .dialog-body {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+    gap: 22px;
+    padding: 22px;
+  }
+
+  .dialog-art {
+    display: grid;
+    place-items: center;
+    align-self: start;
+    min-height: 420px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0c0b0a;
+  }
+
+  .dialog-art img {
+    width: 100%;
+    max-height: 620px;
+    object-fit: contain;
+    padding: 10px;
+  }
+
+  .dialog-copy {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    min-width: 0;
+    padding-right: 8px;
+  }
+
+  .dialog-title-row {
+    display: grid;
+    grid-template-columns: 1fr 44px;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .dialog-title-row h2 {
+    margin-top: 5px;
+    font-size: 34px;
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .dialog-title-row small {
+    display: block;
+    margin-top: 8px;
+    color: var(--soft);
+  }
+
+  .dialog-title-row b {
+    display: inline-grid;
+    place-items: center;
+    min-width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--class-accent);
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .meta-row span {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #100f0e;
+    color: var(--muted);
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .text-block,
+  .stat-block {
+    display: grid;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .text-block h3,
+  .stat-block h3 {
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  .text-block p {
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.45fr) minmax(0, 1fr);
+    gap: 8px 12px;
+  }
+
+  .stat-grid span {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .stat-grid strong {
+    color: var(--muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .source-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    background: #0d0c0b;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .library-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+  }
+
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .library-card {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
+    min-height: 124px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #11100f;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 150ms ease, background 150ms ease;
+  }
+
+  .library-card:hover {
+    border-color: color-mix(in srgb, var(--class-accent) 55%, var(--line));
+    background: #171513;
+  }
+
+  .library-card img {
+    width: 80px;
+    height: 104px;
+    object-fit: contain;
+    align-self: start;
+  }
+
+  .lib-title {
+    display: grid;
+    grid-template-columns: 1fr 30px;
+    gap: 8px;
+    align-items: start;
+  }
+
+  .lib-title h4 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+
+  .lib-title span {
+    display: inline-grid;
+    place-items: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--surface-3);
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .library-card p {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .library-card small {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--soft);
+  }
+
+  @media (max-width: 1100px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .rail {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      overflow-x: hidden;
+      padding: 12px 16px;
+    }
+
+    .class-tabs {
+      position: static;
+      display: grid;
+      grid-auto-columns: 132px;
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+    }
+
+    .class-tab {
+      width: 100%;
+    }
+
+    .build-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .topbar,
+    .topbar-actions,
+    .library-heading {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .source-line {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 6px;
+      white-space: normal;
+    }
+
+    .topbar {
+      gap: 10px;
+      padding: 14px 16px;
+    }
+
+    .workspace {
+      padding: 16px;
+    }
+
+    .class-summary {
+      grid-template-columns: 1fr;
+      padding: 16px;
+    }
+
+    .portrait-wrap {
+      width: min(100%, 220px);
+    }
+
+    .summary-copy h2 {
+      font-size: 30px;
+    }
+
+    .control-band,
+    .columns {
+      grid-template-columns: 1fr;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+    }
+
+    .segmented button {
+      min-width: 0;
+      padding: 0 8px;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .priority-row {
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    }
+
+    .library-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card-dialog {
+      width: calc(100vw - 20px);
+      max-height: calc(100vh - 20px);
+    }
+
+    .dialog-body {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .dialog-art {
+      min-height: 280px;
+    }
+
+    .dialog-title-row h2 {
+      font-size: 28px;
+    }
+  }
+</style>
