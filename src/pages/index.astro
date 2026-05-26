@@ -63,7 +63,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
           </section>
 
           <section class="control-band">
-            <div class="segmented" id="modeTabs" aria-label="Tipo de plan">
+            <div class="segmented" id="modeTabs" aria-label="Tipo de plan" style="display: none;">
               <button type="button" data-mode="steady"></button>
               <button type="button" data-mode="break"></button>
               <button type="button" data-mode="multiplayer"></button>
@@ -422,11 +422,42 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
 
       function activeBuild() {
         const guide = guideForClass();
-        const builds = guide.builds.filter((build) => build.mode === state.mode);
-        if (!builds.some((build) => build.id === state.buildId)) {
-          state.buildId = builds[0]?.id || guide.builds[0].id;
+        if (!guide.builds.some((build) => build.id === state.buildId)) {
+          state.buildId = guide.builds[0]?.id;
         }
         return guide.builds.find((build) => build.id === state.buildId) || guide.builds[0];
+      }
+
+      function buildTags(build) {
+        if (build.tags && build.tags[state.lang]) {
+          return build.tags[state.lang];
+        }
+        const tags = [];
+        if (build.mode === "steady") {
+          tags.push(state.lang === "es" ? "Consistente" : "Consistent");
+        } else if (build.mode === "break") {
+          tags.push(state.lang === "es" ? "Alta sinergia" : "High Synergy");
+        } else if (build.mode === "multiplayer") {
+          tags.push(state.lang === "es" ? "Multijugador" : "Co-op");
+        }
+        
+        const id = build.id.toLowerCase();
+        if (id.includes("poison")) {
+          tags.push(state.lang === "es" ? "Veneno" : "Poison");
+        } else if (id.includes("shiv")) {
+          tags.push(state.lang === "es" ? "Dagas" : "Shivs");
+        } else if (id.includes("exhaust")) {
+          tags.push(state.lang === "es" ? "Agotar" : "Exhaust");
+        } else if (id.includes("strength") || id.includes("loss")) {
+          tags.push(state.lang === "es" ? "Fuerza" : "Strength");
+          tags.push("Burst");
+        } else if (id.includes("tank") || id.includes("block")) {
+          tags.push(state.lang === "es" ? "Defensa" : "Defense");
+        } else if (id.includes("claw")) {
+          tags.push(state.lang === "es" ? "Garras" : "Claws");
+        }
+        
+        return tags;
       }
 
       function englishList(items, limit = 3) {
@@ -752,7 +783,6 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
       function renderBuildSelect() {
         const guide = guideForClass();
         const options = guide.builds
-          .filter((build) => build.mode === state.mode)
           .map((build) => `<option value="${build.id}">${build.name}</option>`)
           .join("");
         els.buildSelect.innerHTML = options;
@@ -766,7 +796,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         document.documentElement.style.setProperty("--class-accent", guide.accent);
         els.classPortrait.src = normalizeUrl(character.image_url);
         els.classPortrait.alt = character.name;
-        els.classKicker.textContent = modeLabel(state.mode, true);
+        els.classKicker.textContent = state.lang === "es" ? "GUÍA DE BUILD" : "BUILD GUIDE";
         els.className.textContent = character.name;
         els.classIdentity.textContent = localizedClass.identity;
         const orbText = character.orb_slots ? `<span>${t("orbs")} ${character.orb_slots}</span>` : "";
@@ -781,7 +811,8 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
       function renderBuild() {
         const build = activeBuild();
         const localizedClass = classCopy();
-        els.buildLabel.textContent = state.lang === "es" ? build.label : modeLabel(build.mode, true);
+        const tags = buildTags(build);
+        els.buildLabel.innerHTML = tags.map(tag => `<span class="badge" style="background: rgba(217, 178, 99, 0.12); color: #ffd65a; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 6px; border: 1px solid rgba(217, 178, 99, 0.25); text-transform: uppercase; display: inline-block;">${escapeHtml(tag)}</span>`).join("");
         els.buildName.textContent = build.name;
         els.buildGoal.textContent = buildGoal(build);
         els.buildRole.textContent = buildRole(build);
@@ -889,10 +920,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         if (!button) return;
         state.classSlug = button.dataset.class;
         const guide = guideForClass();
-        if (!guide.builds.some((build) => build.mode === state.mode)) {
-          state.mode = guide.builds[0].mode;
-        }
-        state.buildId = guide.builds.find((build) => build.mode === state.mode)?.id || guide.builds[0].id;
+        state.buildId = guide.builds[0].id;
         renderAll();
       });
 
