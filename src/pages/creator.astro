@@ -727,10 +727,10 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
     gap: 24px;
     min-height: 78px;
     padding: 16px 28px;
-    border-bottom: 1px solid var(--line-bright);
-    background: rgba(17, 16, 15, 0.82);
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(17, 16, 15, 0.76);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(20px);
   }
 
   .topbar h1 {
@@ -760,52 +760,86 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
   .topbar-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 4px;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
   }
 
-  .nav-link,
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(240, 238, 232, 0.65);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-link:hover {
+    color: #ffe0f3;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .nav-link.active {
+    border: 1px solid rgba(217, 178, 99, 0.25);
+    background: linear-gradient(135deg, rgba(217, 178, 99, 0.16) 0%, rgba(217, 178, 99, 0.04) 100%);
+    color: var(--gold);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 12px rgba(217, 178, 99, 0.08);
+  }
+
   .reset-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 38px;
-    padding: 0 12px;
+    min-height: 46px;
+    padding: 0 16px;
     border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #0d0c0b;
+    border-radius: 14px;
+    background: rgba(16, 15, 14, 0.86);
     color: var(--text);
     font-size: 13px;
     font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: all 0.2s ease;
   }
 
-  .nav-link:hover,
   .reset-button:hover {
     border-color: var(--gold);
+    color: var(--gold);
   }
 
   .lang-toggle {
     display: inline-flex;
-    gap: 4px;
-    padding: 4px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #0d0c0b;
+    gap: 2px;
+    padding: 2px;
+    background: transparent;
+    border: none;
   }
 
   .lang-toggle button {
-    min-width: 38px;
+    min-width: 32px;
     min-height: 30px;
     border: 0;
     border-radius: 6px;
     background: transparent;
-    color: var(--muted);
-    font-size: 12px;
+    color: rgba(240, 238, 232, 0.4);
+    font-size: 11px;
     font-weight: 800;
+    transition: all 0.2s ease;
   }
 
   .lang-toggle button.active {
-    background: var(--gold);
-    color: #18130a;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--gold);
   }
 
   .eyebrow {
