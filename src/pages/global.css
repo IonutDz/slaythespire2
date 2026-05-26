@@ -156,6 +156,16 @@ img {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(74, 29, 150, 0.2);
 }
 
+/* Page Layout Width Unification (Google Stitch Centered Alignment) */
+.layout,
+.catalog-shell,
+.creator-shell {
+  max-width: 1200px !important;
+  width: calc(100% - 32px) !important;
+  margin: 28px auto !important;
+  padding: 0 16px !important;
+}
+
 .topbar h1 {
   font-family: var(--font-fantasy);
   font-size: 24px;
