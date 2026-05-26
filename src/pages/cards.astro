@@ -1,4 +1,5 @@
 ---
+import "./global.css";
 import spireData from "../data/spire-data.json";
 import { buildGuides } from "../data/buildGuides";
 
@@ -931,258 +932,29 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
 </html>
 
 <style is:global>
-  :root {
-    --bg: #11100f;
-    --surface: #191917;
-    --surface-2: #22201d;
-    --surface-3: #2b2924;
-    --text: #f0eee8;
-    --muted: #bdb6a8;
-    --soft: #8d8678;
-    --line: #3a352f;
-    --line-bright: rgba(217, 178, 99, 0.28);
-    --gold: #d9b263;
-    --ironclad: #d65a45;
-    --silent: #46a96f;
-    --defect: #4d8be8;
-    --regent: #d88b35;
-    --necrobinder: #9d68d8;
-    --colorless: #c9b78d;
-    --curse: #8f7a9f;
-    color-scheme: dark;
-    font-family:
-      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background:
-      radial-gradient(circle at 12% 8%, rgba(217, 178, 99, 0.13), transparent 28rem),
-      radial-gradient(circle at 88% 0%, rgba(77, 139, 232, 0.12), transparent 26rem),
-      radial-gradient(circle at 50% 100%, rgba(157, 104, 216, 0.06), transparent 40rem),
-      linear-gradient(90deg, rgba(157, 104, 216, 0.08), transparent 34%, rgba(70, 169, 111, 0.05)),
-      linear-gradient(180deg, rgba(217, 178, 99, 0.06), transparent 330px),
-      var(--bg);
-    color: var(--text);
-    letter-spacing: 0;
-    overflow-x: hidden;
-  }
-
-  button,
-  input,
-  select {
-    font: inherit;
-  }
-
-  button {
-    cursor: pointer;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  img {
-    display: block;
-    max-width: 100%;
-  }
-
-  .app-shell {
-    min-height: 100vh;
-  }
-
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    min-height: 78px;
-    padding: 16px 28px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    background: rgba(17, 16, 15, 0.76);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(20px);
-  }
-
-  .topbar h1,
-  h2,
-  h3,
-  p {
-    margin: 0;
-  }
-
-  .topbar h1 {
-    font-size: 24px;
-    line-height: 1.1;
-  }
-
-  .home-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  .logo-text {
-    font-size: 14px;
-    font-weight: 900;
-    color: var(--gold);
-    letter-spacing: 0.08em;
-  }
-
-  .topbar-center {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    padding: 4px;
-    border-radius: 12px;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-  }
-
-  .nav-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 34px;
-    padding: 0 16px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: transparent;
-    color: rgba(240, 238, 232, 0.65);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.1px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .nav-link:hover {
-    color: #ffe0f3;
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .nav-link.active {
-    border: 1px solid rgba(217, 178, 99, 0.25);
-    background: linear-gradient(135deg, rgba(217, 178, 99, 0.16) 0%, rgba(217, 178, 99, 0.04) 100%);
-    color: var(--gold);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 12px rgba(217, 178, 99, 0.08);
-  }
-
-  .reset-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 46px;
-    padding: 0 16px;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: rgba(16, 15, 14, 0.86);
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 800;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    transition: all 0.2s ease;
-  }
-
-  .reset-button:hover {
-    border-color: var(--gold);
-    color: var(--gold);
-  }
-
-  .lang-toggle {
-    display: inline-flex;
-    gap: 2px;
-    padding: 2px;
-    background: transparent;
-    border: none;
-  }
-
-  .lang-toggle button {
-    min-width: 32px;
-    min-height: 30px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: rgba(240, 238, 232, 0.4);
-    font-size: 11px;
-    font-weight: 800;
-    transition: all 0.2s ease;
-  }
-
-  .lang-toggle button.active {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--gold);
-  }
-
-  .eyebrow {
-    color: var(--gold);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0;
-    text-transform: uppercase;
-  }
-
-  .source-line {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    color: var(--muted);
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  .source-line a {
-    color: var(--gold);
-  }
-
   .catalog-shell {
     display: grid;
-    gap: 18px;
+    gap: 20px;
     max-width: 1600px;
     margin: 0 auto;
-    padding: 24px;
-  }
-
-  .catalog-summary,
-  .filter-band,
-  .results-heading,
-  .build-search-panel {
-    border: 1px solid var(--line-bright);
-    border-radius: 18px;
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 40%),
-      rgba(25, 25, 23, 0.9);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+    padding: 28px;
   }
 
   .catalog-summary {
     display: flex;
     align-items: end;
     justify-content: space-between;
-    gap: 20px;
-    padding: 20px;
+    gap: 24px;
+    padding: 24px;
   }
 
   .catalog-summary h2 {
     margin-top: 6px;
     max-width: 760px;
-    font-size: clamp(32px, 5vw, 58px);
+    font-size: clamp(34px, 5vw, 62px);
     line-height: 0.95;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
+    font-family: var(--font-fantasy);
   }
 
   .stats-row {
@@ -1194,66 +966,35 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
   .stats-row span {
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: rgba(16, 15, 14, 0.76);
+    background: rgba(8, 5, 12, 0.72);
     color: var(--muted);
-    padding: 8px 12px;
+    padding: 8px 14px;
     font-size: 13px;
     font-weight: 800;
+    font-family: var(--font-mono);
   }
 
   .filter-band {
     display: grid;
     grid-template-columns: minmax(240px, 1.4fr) minmax(140px, 0.7fr) minmax(130px, 0.6fr) minmax(130px, 0.6fr) 100px 100px;
     align-items: end;
-    gap: 12px;
-    padding: 14px;
-  }
-
-  .field {
-    display: grid;
-    gap: 7px;
-    min-width: 0;
-  }
-
-  .field span {
-    color: var(--soft);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-
-  .field input,
-  .field select {
-    width: 100%;
-    min-height: 46px;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: rgba(16, 15, 14, 0.86);
-    color: var(--text);
-    padding: 0 14px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  }
-
-  .field input:focus,
-  .field select:focus {
-    border-color: var(--gold);
-    outline: 2px solid rgba(217, 178, 99, 0.18);
-  }
-
-  .reset-button {
-    min-height: 42px;
+    gap: 14px;
+    padding: 16px;
   }
 
   .results-heading {
-    padding: 12px 14px;
+    padding: 14px 18px;
     color: var(--muted);
     font-weight: 700;
+    font-family: var(--font-fantasy);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .build-search-panel {
     display: grid;
-    gap: 14px;
-    padding: 20px;
+    gap: 16px;
+    padding: 24px;
   }
 
   .build-search-panel[hidden] {
@@ -1264,58 +1005,61 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: 18px;
   }
 
   .build-search-head h2 {
     margin-top: 4px;
-    font-size: clamp(24px, 3vw, 38px);
+    font-size: clamp(26px, 3vw, 42px);
     line-height: 1;
     overflow-wrap: anywhere;
-    background: linear-gradient(135deg, var(--text), var(--gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-family: var(--font-fantasy);
+    color: var(--text);
   }
 
   .build-search-head > span {
     flex: 0 0 auto;
     border: 1px solid var(--line-bright);
     border-radius: 999px;
-    background: rgba(217, 178, 99, 0.1);
+    background: rgba(217, 178, 99, 0.12);
     color: var(--gold);
-    padding: 7px 10px;
+    padding: 7px 12px;
     font-size: 12px;
     font-weight: 900;
+    font-family: var(--font-mono);
   }
 
   .build-search-hint {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 14.5px;
+    line-height: 1.5;
   }
 
   .build-search-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
   }
 
   .build-search-card {
     display: grid;
-    gap: 10px;
+    gap: 12px;
     border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 34%, var(--line));
     border-radius: 14px;
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 12%, transparent), transparent 44%),
-      rgba(16, 15, 14, 0.78);
-    padding: 12px;
+      rgba(10, 6, 15, 0.85);
+    padding: 16px;
+    outline: 1px dashed rgba(255, 255, 255, 0.02);
+    outline-offset: -5px;
   }
 
   .build-search-card-title strong {
     display: block;
     color: var(--text);
-    font-size: 18px;
-    line-height: 1.15;
+    font-family: var(--font-fantasy);
+    font-size: 19px;
+    line-height: 1.2;
     overflow-wrap: anywhere;
   }
 
@@ -1323,287 +1067,223 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
     display: block;
     margin-top: 4px;
     color: var(--soft);
+    font-family: var(--font-fantasy);
     font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .build-search-matches {
     display: grid;
-    gap: 6px;
+    gap: 8px;
   }
 
   .build-search-matches div {
     display: grid;
-    gap: 2px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding-top: 7px;
+    gap: 3px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
   }
 
   .build-search-matches b {
     color: var(--gold);
-    font-size: 13px;
+    font-family: var(--font-fantasy);
+    font-size: 13.5px;
+    letter-spacing: 0.02em;
   }
 
   .build-search-matches span {
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.4;
   }
 
   .build-grouped-section,
   .build-card-section {
     display: grid;
-    gap: 10px;
+    gap: 12px;
   }
 
   .build-grouped-section {
-    padding-bottom: 14px;
+    padding-bottom: 18px;
     border-bottom: 1px solid var(--line);
   }
 
   .section-subtitle {
     color: var(--gold);
-    font-size: 14px;
+    font-family: var(--font-fantasy);
+    font-size: 14.5px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
 
   .build-grouped-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 14px;
   }
 
   .build-group-card {
     display: grid;
-    gap: 8px;
+    gap: 10px;
     border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 34%, var(--line));
     border-radius: 14px;
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 14%, transparent), transparent 44%),
-      rgba(16, 15, 14, 0.78);
-    padding: 14px;
-    transition: border-color 150ms ease, transform 150ms ease;
+      rgba(10, 6, 15, 0.85);
+    padding: 16px;
+    outline: 1px dashed rgba(255, 255, 255, 0.02);
+    outline-offset: -5px;
+    transition: all 0.25s ease;
   }
 
   .build-group-card:hover {
     border-color: color-mix(in srgb, var(--card-accent, var(--gold)) 65%, var(--line));
-    transform: translateY(-2px);
+    outline-color: var(--card-accent, var(--gold));
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
   }
 
   .build-group-header strong {
     display: block;
     color: var(--text);
-    font-size: 17px;
-    line-height: 1.15;
+    font-family: var(--font-fantasy);
+    font-size: 18px;
+    line-height: 1.2;
   }
 
   .build-group-header small {
     display: block;
-    margin-top: 3px;
+    margin-top: 4px;
     color: var(--soft);
-    font-size: 12px;
+    font-family: var(--font-fantasy);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .build-group-goal {
     color: var(--muted);
     font-size: 13px;
-    line-height: 1.4;
+    line-height: 1.5;
     overflow-wrap: anywhere;
   }
 
   .build-group-cards {
     display: grid;
-    gap: 5px;
+    gap: 6px;
   }
 
   .build-group-entry {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding-top: 6px;
+    gap: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 8px;
   }
 
   .build-group-entry span {
     color: var(--text);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
   }
 
   .build-group-entry b {
-    border-radius: 999px;
-    padding: 2px 8px;
+    border-radius: 6px;
+    padding: 3px 8px;
     font-size: 10px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
     white-space: nowrap;
   }
 
   .build-group-entry.role-core b {
-    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
-    background: color-mix(in srgb, #61b57c 16%, #100f0e);
+    border: 1px solid rgba(70, 169, 111, 0.5);
+    background: rgba(70, 169, 111, 0.15);
     color: #8eddab;
   }
-
-  .build-group-entry.role-enablers b {
-    border: 1px solid color-mix(in srgb, #6aa3ee 55%, var(--line));
-    background: color-mix(in srgb, #6aa3ee 16%, #100f0e);
-    color: #9dc4f7;
+  .build-group-entry.role-support b {
+    border: 1px solid rgba(77, 139, 232, 0.5);
+    background: rgba(77, 139, 232, 0.15);
+    color: #8ec3ff;
   }
-
-  .build-group-entry.role-payoffs b {
-    border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
-    background: color-mix(in srgb, var(--gold) 16%, #100f0e);
-    color: var(--gold);
-  }
-
-  .build-group-entry.role-safePicks b {
+  .build-group-entry.role-situational b {
     border: 1px solid var(--line);
-    background: rgba(16, 15, 14, 0.72);
+    background: rgba(255,255,255,0.05);
     color: var(--muted);
-  }
-
-  .build-group-entry.role-avoid b {
-    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
-    background: color-mix(in srgb, #df6a58 16%, #100f0e);
-    color: #f0968a;
-  }
-
-  .build-card-section {
-    padding-top: 14px;
   }
 
   .catalog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
   }
 
-  .catalog-card {
-    display: grid;
-    grid-template-rows: 176px 1fr;
-    overflow: hidden;
-    width: 100%;
-    padding: 0;
-    min-height: 390px;
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 42%),
-      var(--surface);
-    color: var(--text);
-    font: inherit;
-    text-align: left;
-    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.2);
-    transition:
-      border-color 200ms ease,
-      transform 200ms ease,
-      box-shadow 200ms ease;
-  }
-
-  .catalog-card:hover {
-    border-color: var(--card-accent, var(--gold));
-    box-shadow:
-      0 22px 44px rgba(0, 0, 0, 0.34),
-      0 0 0 3px color-mix(in srgb, var(--card-accent, var(--gold)) 18%, transparent),
-      0 0 28px color-mix(in srgb, var(--card-accent, var(--gold)) 10%, transparent);
-    transform: translateY(-4px);
-  }
-
-  .color-ironclad {
-    --card-accent: var(--ironclad);
-  }
-
-  .color-silent {
-    --card-accent: var(--silent);
-  }
-
-  .color-defect {
-    --card-accent: var(--defect);
-  }
-
-  .color-regent {
-    --card-accent: var(--regent);
-  }
-
-  .color-necrobinder {
-    --card-accent: var(--necrobinder);
-  }
-
-  .color-colorless,
-  .color-event,
-  .color-token,
-  .color-status,
-  .color-quest {
-    --card-accent: var(--colorless);
-  }
-
-  .color-curse {
-    --card-accent: var(--curse);
-  }
-
-  .art-wrap {
+  .dialog-art {
     display: grid;
     place-items: center;
-    border-bottom: 1px solid var(--line);
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--card-accent, var(--gold)) 18%, transparent), transparent 55%),
-      #0c0b0a;
+    align-self: start;
+    min-height: 420px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #07040a;
+    outline: 1px dashed rgba(255, 255, 255, 0.03);
+    outline-offset: -5px;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
   }
 
-  .art-wrap img {
+  .dialog-art img {
     width: 100%;
-    height: 100%;
+    max-height: 620px;
     object-fit: contain;
-    padding: 8px;
+    padding: 12px;
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.85));
   }
 
-  .card-copy {
+  .dialog-copy {
     display: grid;
     align-content: start;
-    gap: 8px;
+    gap: 18px;
     min-width: 0;
-    padding: 12px;
+    padding-right: 8px;
   }
 
-  .card-title-row {
+  .dialog-title-row {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 44px;
+    gap: 16px;
     align-items: start;
-    gap: 8px;
   }
 
-  .card-title-row h3 {
-    display: block;
-    width: 100%;
-    overflow: visible;
-    color: var(--text);
-    font-size: clamp(17px, 1.35vw, 22px);
-    line-height: 1.12;
+  .dialog-title-row h2 {
+    margin-top: 5px;
+    font-family: var(--font-fantasy);
+    font-size: 36px;
+    line-height: 1.15;
     overflow-wrap: anywhere;
-    word-break: normal;
-    hyphens: auto;
   }
 
-  .card-title-row b {
+  .dialog-title-row small {
+    display: block;
+    margin-top: 6px;
+    color: var(--soft);
+    font-family: var(--font-fantasy);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .dialog-title-row b {
     display: inline-grid;
     place-items: center;
-    justify-self: start;
-    min-width: 32px;
-    height: 30px;
+    min-width: 44px;
+    height: 44px;
     border-radius: 8px;
-    background: var(--card-accent, var(--surface-3));
+    background: var(--class-accent);
     color: #fff;
-    font-size: 12px;
-  }
-
-  .card-copy small {
-    color: var(--soft);
-    font-size: 12px;
-    line-height: 1.25;
-    overflow-wrap: anywhere;
+    font-size: 18px;
   }
 
   .meta-row {
@@ -1615,213 +1295,42 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
   .meta-row span {
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: #100f0e;
+    background: rgba(0, 0, 0, 0.45);
     color: var(--muted);
-    padding: 4px 7px;
+    padding: 6px 10px;
     font-size: 12px;
-  }
-
-  .card-copy p {
-    display: -webkit-box;
-    overflow: hidden;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.35;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
-  }
-
-  .card-build-hints {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 4px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .build-badge {
-    border-radius: 999px;
-    padding: 3px 8px;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .build-badge.role-core {
-    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
-    background: color-mix(in srgb, #61b57c 16%, #100f0e);
-    color: #8eddab;
-  }
-
-  .build-badge.role-enablers {
-    border: 1px solid color-mix(in srgb, #6aa3ee 55%, var(--line));
-    background: color-mix(in srgb, #6aa3ee 16%, #100f0e);
-    color: #9dc4f7;
-  }
-
-  .build-badge.role-payoffs {
-    border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
-    background: color-mix(in srgb, var(--gold) 16%, #100f0e);
-    color: var(--gold);
-  }
-
-  .build-badge.role-safePicks {
-    border: 1px solid var(--line);
-    background: rgba(16, 15, 14, 0.72);
-    color: var(--muted);
-  }
-
-  .build-badge.role-avoid {
-    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
-    background: color-mix(in srgb, #df6a58 16%, #100f0e);
-    color: #f0968a;
-  }
-
-  .detail-chip {
-    justify-self: start;
-    margin-top: 2px;
-    border: 1px solid color-mix(in srgb, var(--card-accent, var(--gold)) 55%, var(--line));
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--card-accent, var(--gold)) 12%, #100f0e);
-    color: var(--text);
-    padding: 5px 8px;
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  .card-dialog {
-    width: min(1120px, calc(100vw - 32px));
-    max-height: min(860px, calc(100vh - 32px));
-    overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--text);
-    padding: 0;
-    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58);
-  }
-
-  .card-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.72);
-    backdrop-filter: blur(3px);
-  }
-
-  .dialog-panel {
-    position: relative;
-    max-height: inherit;
-    overflow: auto;
-  }
-
-  .dialog-close {
-    position: sticky;
-    top: 12px;
-    z-index: 2;
-    float: right;
-    display: inline-grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    margin: 12px 12px 0 0;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #0d0c0b;
-    color: var(--text);
-    font-size: 24px;
-    line-height: 1;
-  }
-
-  .dialog-body {
-    display: grid;
-    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-    gap: 22px;
-    padding: 22px;
-  }
-
-  .dialog-art {
-    display: grid;
-    place-items: center;
-    align-self: start;
-    min-height: 420px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #0c0b0a;
-  }
-
-  .dialog-art img {
-    width: 100%;
-    max-height: 620px;
-    object-fit: contain;
-    padding: 10px;
-  }
-
-  .dialog-copy {
-    display: grid;
-    align-content: start;
-    gap: 16px;
-    min-width: 0;
-    padding-right: 8px;
-  }
-
-  .dialog-title-row {
-    display: grid;
-    grid-template-columns: 1fr 44px;
-    gap: 14px;
-    align-items: start;
-  }
-
-  .dialog-title-row h2 {
-    margin-top: 5px;
-    font-size: 34px;
-    line-height: 1;
-    overflow-wrap: anywhere;
-  }
-
-  .dialog-title-row small {
-    display: block;
-    margin-top: 8px;
-    color: var(--soft);
-  }
-
-  .dialog-title-row b {
-    display: inline-grid;
-    place-items: center;
-    min-width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    background: var(--gold);
-    color: #18130a;
-    font-size: 18px;
+    font-family: var(--font-mono);
   }
 
   .text-block,
   .stat-block {
     display: grid;
-    gap: 8px;
-    padding-top: 14px;
+    gap: 10px;
+    padding-top: 16px;
     border-top: 1px solid var(--line);
   }
 
   .text-block h3,
   .stat-block h3 {
     color: var(--gold);
+    font-family: var(--font-fantasy);
     font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .text-block p {
     color: var(--text);
-    font-size: 17px;
-    line-height: 1.55;
+    font-size: 16px;
+    line-height: 1.6;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
 
   .stat-grid {
     display: grid;
-    grid-template-columns: minmax(90px, 0.45fr) minmax(0, 1fr);
-    gap: 8px 12px;
+    grid-template-columns: minmax(100px, 0.45fr) minmax(0, 1fr);
+    gap: 8px 14px;
   }
 
   .stat-grid span {
@@ -1829,59 +1338,85 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
     font-size: 12px;
     font-weight: 800;
     text-transform: uppercase;
+    font-family: var(--font-fantasy);
+    letter-spacing: 0.04em;
   }
 
   .stat-grid strong {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 13.5px;
     overflow-wrap: anywhere;
   }
 
-  .build-advice {
-    display: grid;
-    gap: 12px;
-    padding-top: 14px;
-    border-top: 1px solid var(--line);
+  .source-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    background: rgba(16, 11, 24, 0.85);
+    color: var(--gold);
+    font-family: var(--font-fantasy);
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+    outline: 1px dashed rgba(217, 178, 99, 0.2);
+    outline-offset: -4px;
+  }
+  .source-button:hover {
+    border-color: #fff;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
   }
 
   .section-heading-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 14px;
   }
 
   .section-heading-row h3,
   .build-advice > h3 {
     color: var(--gold);
-    font-size: 14px;
+    font-family: var(--font-fantasy);
+    font-size: 14.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .section-heading-row span {
     border: 1px solid var(--line-bright);
     border-radius: 999px;
-    background: rgba(217, 178, 99, 0.1);
+    background: rgba(217, 178, 99, 0.12);
     color: var(--gold);
-    padding: 5px 9px;
+    padding: 5px 12px;
     font-size: 12px;
     font-weight: 900;
-    white-space: nowrap;
+    font-family: var(--font-mono);
   }
 
   .build-match-list {
     display: grid;
-    gap: 10px;
+    gap: 12px;
   }
 
   .build-match {
     display: grid;
-    gap: 8px;
+    gap: 10px;
     border: 1px solid color-mix(in srgb, var(--match-accent, var(--gold)) 34%, var(--line));
     border-radius: 14px;
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--match-accent, var(--gold)) 10%, transparent), transparent 46%),
-      rgba(16, 15, 14, 0.78);
-    padding: 12px;
+      rgba(10, 6, 15, 0.85);
+    padding: 14px;
+    outline: 1px dashed rgba(255, 255, 255, 0.02);
+    outline-offset: -5px;
     transition: border-color 150ms ease;
   }
 
@@ -1892,74 +1427,65 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
   .build-match.is-warning {
     background:
       linear-gradient(135deg, rgba(216, 91, 69, 0.1), transparent 46%),
-      rgba(16, 15, 14, 0.78);
+      rgba(10, 6, 15, 0.85);
   }
 
   .build-match-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: 14px;
   }
 
   .build-match strong {
     display: block;
     color: var(--text);
-    font-size: 15px;
+    font-family: var(--font-fantasy);
+    font-size: 16px;
   }
 
   .build-match small {
     display: block;
     margin-top: 3px;
     color: var(--soft);
-    font-size: 12px;
+    font-family: var(--font-fantasy);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .build-match-top > span {
     flex: 0 0 auto;
-    border-radius: 999px;
-    padding: 5px 8px;
+    border-radius: 6px;
+    padding: 4px 8px;
     font-size: 11px;
     font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     white-space: nowrap;
   }
 
   .build-match:not(.is-warning) .build-match-top > span {
-    border: 1px solid color-mix(in srgb, #61b57c 55%, var(--line));
-    background: color-mix(in srgb, #61b57c 16%, #100f0e);
+    border: 1px solid rgba(70, 169, 111, 0.5);
+    background: rgba(70, 169, 111, 0.15);
     color: #8eddab;
   }
 
   .build-match.is-warning .build-match-top > span {
-    border: 1px solid color-mix(in srgb, #df6a58 55%, var(--line));
-    background: color-mix(in srgb, #df6a58 16%, #100f0e);
+    border: 1px solid rgba(214, 90, 69, 0.5);
+    background: rgba(214, 90, 69, 0.15);
     color: #f0968a;
   }
 
   .build-match p,
   .empty-builds {
     color: var(--muted);
-    font-size: 13px;
-    line-height: 1.45;
+    font-size: 13.5px;
+    line-height: 1.5;
   }
 
   .build-match p b {
     color: var(--text);
-  }
-
-  .source-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    justify-self: start;
-    min-height: 40px;
-    padding: 0 12px;
-    border: 1px solid var(--gold);
-    border-radius: 8px;
-    background: #0d0c0b;
-    color: var(--gold);
-    font-size: 13px;
-    font-weight: 800;
   }
 
   @media (max-width: 1120px) {
@@ -1973,31 +1499,20 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
   }
 
   @media (max-width: 760px) {
-    .topbar,
-    .topbar-actions,
-    .catalog-summary {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .source-line {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 6px;
-      white-space: normal;
-    }
-
-    .topbar {
-      gap: 10px;
-      padding: 14px 16px;
-    }
-
     .catalog-shell {
       padding: 16px;
     }
 
     .catalog-summary h2 {
-      font-size: 30px;
+      font-size: 32px;
+      text-align: center;
+    }
+
+    .catalog-summary {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 20px;
     }
 
     .filter-band {
@@ -2008,19 +1523,19 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
       grid-template-columns: 1fr;
     }
 
-    .card-dialog {
-      width: calc(100vw - 20px);
-      max-height: calc(100vh - 20px);
+    .build-search-grid,
+    .build-grouped-grid {
+      grid-template-columns: 1fr;
     }
 
     .dialog-body {
       grid-template-columns: 1fr;
-      gap: 16px;
-      padding: 16px;
+      gap: 18px;
+      padding: 20px;
     }
 
     .dialog-art {
-      min-height: 280px;
+      min-height: 300px;
     }
 
     .dialog-title-row h2 {
