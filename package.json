@@ -1,6 +1,6 @@
 {
   "name": "slaythespire2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Portal interactivo de builds para Slay the Spire 2.",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
