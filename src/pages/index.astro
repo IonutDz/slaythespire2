@@ -32,7 +32,10 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
           <h1>Build Portal</h1>
         </div>
         <div class="topbar-actions">
+          <a class="nav-link active" href="/">Portal</a>
           <a class="nav-link" href="/cards">Cartas</a>
+          <a class="nav-link" href="/relics">Reliquias</a>
+          <a class="nav-link" href="/runs">Partidas</a>
           <a class="nav-link" href="/creator">Creador</a>
           <div class="lang-toggle" id="langToggle" aria-label="Language">
             <button type="button" data-lang="es">ES</button>
@@ -96,6 +99,11 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
                 <h4 id="draftHeading">Reglas de draft</h4>
                 <ul id="draftRules" class="inline-list"></ul>
               </div>
+
+              <div class="advice-strip" id="relicsStrip" hidden>
+                <h4 id="relicsHeading">Reliquias recomendadas</h4>
+                <ul id="buildRelics" class="inline-list"></ul>
+              </div>
             </article>
 
           </section>
@@ -152,6 +160,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
           earlyPlan: "Plan temprano",
           breakpoints: "Breakpoints",
           draftRules: "Reglas de draft",
+          relicsHeading: "Reliquias recomendadas",
           selector: "Selector",
           cardOffer: "Oferta de cartas",
           searchCard: "Buscar carta",
@@ -226,6 +235,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
           earlyPlan: "Early Plan",
           breakpoints: "Breakpoints",
           draftRules: "Draft Rules",
+          relicsHeading: "Recommended Relics",
           selector: "Picker",
           cardOffer: "Card Offer",
           searchCard: "Search card",
@@ -381,6 +391,9 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         earlyPlan: document.getElementById("earlyPlan"),
         breakpoints: document.getElementById("breakpoints"),
         draftRules: document.getElementById("draftRules"),
+        relicsHeading: document.getElementById("relicsHeading"),
+        relicsStrip: document.getElementById("relicsStrip"),
+        buildRelics: document.getElementById("buildRelics"),
         cardGroups: document.getElementById("cardGroups"),
         realCardsKicker: document.getElementById("realCardsKicker"),
         priorityHeading: document.getElementById("priorityHeading"),
@@ -698,6 +711,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         els.earlyHeading.textContent = t("earlyPlan");
         els.breakpointHeading.textContent = t("breakpoints");
         els.draftHeading.textContent = t("draftRules");
+        els.relicsHeading.textContent = t("relicsHeading");
         els.realCardsKicker.textContent = t("realCards");
         els.priorityHeading.textContent = t("buildPriorities");
         els.libraryKicker.textContent = t("library");
@@ -779,6 +793,14 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         els.earlyPlan.innerHTML = listHtml(buildEarlyPlan(build));
         els.breakpoints.innerHTML = listHtml(buildBreakpoints(build));
         els.draftRules.innerHTML = listHtml(localizedClass.draftRules.map(localizeNamesInText));
+
+        if (build.relics && build.relics.length > 0) {
+          els.relicsStrip.hidden = false;
+          els.buildRelics.innerHTML = build.relics.map(r => `<li><a href="/relics?search=${encodeURIComponent(r)}" style="color: #ffd65a; font-weight: 500; text-decoration: underline;">${r}</a></li>`).join("");
+        } else {
+          els.relicsStrip.hidden = true;
+          els.buildRelics.innerHTML = "";
+        }
       }
 
       function renderCardGroups() {

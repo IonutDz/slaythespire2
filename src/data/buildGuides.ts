@@ -16,6 +16,9 @@ export type BuildGuide = {
   upgrades: string[];
   breakpoints: string[];
   notes: string[];
+  relics?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
 };
 
 export type ClassGuide = {
@@ -69,6 +72,9 @@ export const buildGuides: Record<string, ClassGuide> = {
           "La version rota no es coger todas las cartas de Exhaust, sino tener robo suficiente para no quedarte seco.",
           "Si el equipo va lento, guarda Fiend Fire o Pact's End para rematar fases peligrosas.",
         ],
+        relics: ["Charon's Ashes", "Joss Paper"],
+        strengths: ["Post-combat healing makes him very survivable", "Exhaust synergies provide powerful card-draw and scaling"],
+        weaknesses: ["Exhaust management can feel clunky without the right relics", "Relies heavily on hitting key scaling cards early"],
       },
       {
         id: "ironclad-vulnerable",
@@ -97,6 +103,9 @@ export const buildGuides: Record<string, ClassGuide> = {
           "Es la linea mas facil de pilotar si no sabes que te va a tocar.",
           "En multiplayer vale incluso cuando tu propio dano no sea el mayor.",
         ],
+        relics: ["Strike Dummy", "Intimidating Helmet"],
+        strengths: ["High base damage ceiling with Strength stacking", "Multiple viable build paths — easy to pivot mid-run"],
+        weaknesses: ["Weak to multi-hit and chip damage if not careful", "Limited ceiling compared to other characters at high Ascension"],
       },
       {
         id: "ironclad-tank",
@@ -125,6 +134,9 @@ export const buildGuides: Record<string, ClassGuide> = {
           "No necesitas ser el mayor dano de la lobby. Necesitas que nadie muera antes del turno fuerte.",
           "Coordina Tank con aliados fragiles: si no pueden capitalizar el tiempo, el coste es alto.",
         ],
+        relics: ["Cloak Clasp", "Vambrace", "Parrying Shield", "Bronze Scales"],
+        strengths: ["Provides unmatched safety for the team", "Converts defense directly into high single-target burst"],
+        weaknesses: ["Requires setup cards like Barricade to function", "Struggles to deal high area damage early in runs"],
       },
       {
         id: "ironclad-hp-loss",
@@ -153,6 +165,9 @@ export const buildGuides: Record<string, ClassGuide> = {
           "En multiplayer avisa antes de bajar mucho tu HP; puedes obligar al equipo a defenderte.",
           "Si la lobby no tiene soporte, juega esta build como burst y no como sacrificio infinito.",
         ],
+        relics: ["Centennial Puzzle", "Demon Tongue", "Self-Forming Clay"],
+        strengths: ["Extremely fast Strength scaling", "Excellent card draw and energy economy"],
+        weaknesses: ["High risk of self-damage leading to sudden deaths", "Relies heavily on drawing Rupture early in the fight"],
       },
     ],
   },

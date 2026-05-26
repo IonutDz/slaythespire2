@@ -1,0 +1,620 @@
+---
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>STS2 Run Analyzer</title>
+    <meta
+      name="description"
+      content="Sube tus archivos .run de Slay the Spire 2 y analiza tus estadísticas detalladamente."
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="home-logo" href="/creator" title="Creador de Builds">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#d9b263"/>
+            <path d="M8 22V12l8-5 8 5v10l-8 4-8-4z" fill="#18130a" stroke="#18130a" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 7v19M8 12l8 5 8-5" stroke="#d9b263" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">STS2</span>
+        </a>
+        <div class="topbar-center">
+          <h1 id="pageTitle">Analizador de Partidas</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="nav-link" href="/">Portal</a>
+          <a class="nav-link" href="/cards">Cartas</a>
+          <a class="nav-link" href="/relics">Reliquias</a>
+          <a class="nav-link active" href="/runs">Partidas</a>
+          <a class="nav-link" href="/creator">Creador</a>
+          <div class="lang-toggle" id="langToggle" aria-label="Language">
+            <button type="button" data-lang="es">ES</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="catalog-shell">
+        <section class="catalog-summary">
+          <div>
+            <p id="summaryKicker" class="eyebrow">Rastreador del Spire</p>
+            <h2 id="summaryTitle">Cargar Partida (.run)</h2>
+          </div>
+        </section>
+
+        <!-- Dropzone Section -->
+        <section class="dropzone-section" id="dropzoneSection">
+          <div class="dropzone-container" id="dropContainer">
+            <svg class="dropzone-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+            </svg>
+            <h3 id="dropTitle">Arrastra tu archivo .run aquí</h3>
+            <p id="dropSubtitle" class="sub-text">O haz clic para seleccionar el archivo en tu equipo</p>
+            <p id="dropHelp" class="help-text">Ruta típica: <code>Steam/steamapps/common/SlayTheSpire2/runs/</code></p>
+            <input type="file" id="fileInput" accept=".run" style="display: none;" />
+          </div>
+        </section>
+
+        <!-- Error Alert -->
+        <div id="errorAlert" class="error-alert" hidden></div>
+
+        <!-- Dashboard Section -->
+        <section class="dashboard-section" id="dashboard" hidden>
+          <div class="dashboard-header" id="dashHeader">
+            <!-- Dynamically populated banner with victory or defeat status -->
+          </div>
+
+          <div class="dash-grid">
+            <!-- Column 1: Core Stats & Relics -->
+            <div class="dash-col">
+              <div class="dash-box">
+                <h3 id="statsTitle">Estadísticas Principales</h3>
+                <div class="stats-list" id="statsList"></div>
+              </div>
+
+              <div class="dash-box">
+                <h3 id="relicsTitle">Reliquias Obtenidas</h3>
+                <div class="relic-belt" id="relicBelt"></div>
+              </div>
+            </div>
+
+            <!-- Column 2: Deck & History -->
+            <div class="dash-col">
+              <div class="dash-box">
+                <h3 id="deckTitle">Mazo Final</h3>
+                <div class="deck-grid" id="deckGrid"></div>
+              </div>
+
+              <div class="dash-box">
+                <h3 id="timelineTitle">Historial de Vida por Piso</h3>
+                <div class="chart-container">
+                  <div class="hp-chart" id="hpChart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script is:inline type="module">
+      const copy = {
+        es: {
+          pageTitle: "Analizador de Partidas",
+          summaryKicker: "Rastreador del Spire",
+          summaryTitle: "Cargar Partida (.run)",
+          dropTitle: "Arrastra tu archivo .run aquí",
+          dropSubtitle: "O haz clic para seleccionar el archivo en tu equipo",
+          dropHelp: "Ruta típica: <code>SlayTheSpire2/runs/</code>",
+          invalidFile: "Archivo no válido. Por favor, sube un archivo .run generado por el juego.",
+          victory: "VICTORIA",
+          defeat: "DERROTA",
+          statsTitle: "Estadísticas Principales",
+          relicsTitle: "Reliquias Obtenidas",
+          deckTitle: "Mazo Final",
+          timelineTitle: "Historial de Vida por Piso",
+          character: "Personaje",
+          ascension: "Ascensión",
+          score: "Puntuación",
+          gold: "Oro final",
+          playtime: "Tiempo de juego",
+          seed: "Semilla",
+          floor: "Piso alcanzado",
+          minutes: "min",
+          cards: "cartas"
+        },
+        en: {
+          pageTitle: "Run Analyzer",
+          summaryKicker: "Spire Tracker",
+          summaryTitle: "Upload Run (.run)",
+          dropTitle: "Drag your .run file here",
+          dropSubtitle: "Or click to select it from your computer",
+          dropHelp: "Typical path: <code>SlayTheSpire2/runs/</code>",
+          invalidFile: "Invalid file. Please upload a valid .run file generated by the game.",
+          victory: "VICTORY",
+          defeat: "DEFEAT",
+          statsTitle: "Main Statistics",
+          relicsTitle: "Acquired Relics",
+          deckTitle: "Final Deck",
+          timelineTitle: "HP History per Floor",
+          character: "Character",
+          ascension: "Ascension",
+          score: "Score",
+          gold: "Final gold",
+          playtime: "Playtime",
+          seed: "Seed",
+          floor: "Floor reached",
+          minutes: "min",
+          cards: "cards"
+        }
+      };
+
+      let activeLang = "es";
+
+      const elements = {
+        langToggle: document.getElementById("langToggle"),
+        pageTitle: document.getElementById("pageTitle"),
+        summaryKicker: document.getElementById("summaryKicker"),
+        summaryTitle: document.getElementById("summaryTitle"),
+        dropzoneSection: document.getElementById("dropzoneSection"),
+        dropContainer: document.getElementById("dropContainer"),
+        dropTitle: document.getElementById("dropTitle"),
+        dropSubtitle: document.getElementById("dropSubtitle"),
+        dropHelp: document.getElementById("dropHelp"),
+        fileInput: document.getElementById("fileInput"),
+        errorAlert: document.getElementById("errorAlert"),
+        dashboard: document.getElementById("dashboard"),
+        dashHeader: document.getElementById("dashHeader"),
+        statsTitle: document.getElementById("statsTitle"),
+        statsList: document.getElementById("statsList"),
+        relicsTitle: document.getElementById("relicsTitle"),
+        relicBelt: document.getElementById("relicBelt"),
+        deckTitle: document.getElementById("deckTitle"),
+        deckGrid: document.getElementById("deckGrid"),
+        timelineTitle: document.getElementById("timelineTitle"),
+        hpChart: document.getElementById("hpChart")
+      };
+
+      function updateLanguage(lang) {
+        activeLang = lang;
+        document.documentElement.lang = lang;
+
+        // Toggle active button
+        elements.langToggle.querySelectorAll("button").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.lang === lang);
+        });
+
+        // Translate labels
+        elements.pageTitle.textContent = copy[lang].pageTitle;
+        elements.summaryKicker.textContent = copy[lang].summaryKicker;
+        elements.summaryTitle.textContent = copy[lang].summaryTitle;
+        elements.dropTitle.textContent = copy[lang].dropTitle;
+        elements.dropSubtitle.textContent = copy[lang].dropSubtitle;
+        elements.dropHelp.innerHTML = copy[lang].dropHelp;
+        elements.statsTitle.textContent = copy[lang].statsTitle;
+        elements.relicsTitle.textContent = copy[lang].relicsTitle;
+        elements.deckTitle.textContent = copy[lang].deckTitle;
+        elements.timelineTitle.textContent = copy[lang].timelineTitle;
+      }
+
+      // Drag and drop listeners
+      elements.dropContainer.addEventListener("click", () => elements.fileInput.click());
+
+      elements.dropContainer.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        elements.dropContainer.classList.add("dragover");
+      });
+
+      ["dragleave", "dragend"].forEach(type => {
+        elements.dropContainer.addEventListener(type, () => {
+          elements.dropContainer.classList.remove("dragover");
+        });
+      });
+
+      elements.dropContainer.addEventListener("drop", (e) => {
+        e.preventDefault();
+        elements.dropContainer.classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
+
+      elements.fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) handleFile(file);
+      });
+
+      function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            elements.errorAlert.hidden = true;
+            renderDashboard(data);
+          } catch (err) {
+            elements.errorAlert.textContent = copy[activeLang].invalidFile;
+            elements.errorAlert.hidden = false;
+            elements.dashboard.hidden = true;
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function renderDashboard(data) {
+        elements.dashboard.hidden = false;
+
+        // Header Victory/Defeat Banner
+        const isVictory = data.victory;
+        const score = data.score || 0;
+        const charName = data.character_chosen || "Ironclad";
+        elements.dashHeader.className = `dashboard-header ${isVictory ? "is-victory" : "is-defeat"}`;
+        elements.dashHeader.innerHTML = `
+          <div class="banner-badge">${isVictory ? copy[activeLang].victory : copy[activeLang].defeat}</div>
+          <div class="banner-title">${charName.replace("THE_", "")} - A${data.ascension_level || 0}</div>
+          <div class="banner-score">${copy[activeLang].score}: ${score}</div>
+        `;
+
+        // Main Stats list
+        const playtimeSecs = data.playtime || 0;
+        const mins = Math.floor(playtimeSecs / 60);
+        elements.statsList.innerHTML = `
+          <div class="stat-row"><span class="lbl">${copy[activeLang].character}</span><span class="val">${charName}</span></div>
+          <div class="stat-row"><span class="lbl">${copy[activeLang].ascension}</span><span class="val">Ascension ${data.ascension_level || 0}</span></div>
+          <div class="stat-row"><span class="lbl">${copy[activeLang].floor}</span><span class="val">${data.floor_reached || 0}</span></div>
+          <div class="stat-row"><span class="lbl">${copy[activeLang].gold}</span><span class="val">${data.gold || 0}🪙</span></div>
+          <div class="stat-row"><span class="lbl">${copy[activeLang].playtime}</span><span class="val">${mins} ${copy[activeLang].minutes}</span></div>
+          <div class="stat-row"><span class="lbl">${copy[activeLang].seed}</span><span class="val font-mono select-all">${data.seed_played || "N/A"}</span></div>
+        `;
+
+        // Acquired Relics Belt
+        const relicsList = data.relics || [];
+        elements.relicBelt.innerHTML = relicsList.map(relic => {
+          // Normalize relic name for image fetch
+          const imgName = relic.replace(/\s+/g, "");
+          const imgUrl = `https://slaythespire.wiki.gg/images/StS2_${imgName}.png`;
+          return `
+            <div class="relic-item" title="${relic}">
+              <img src="${imgUrl}" onerror="this.src='https://slaythespire.wiki.gg/images/StS2_MiniRegent.png'" alt="${relic}" />
+              <span class="relic-name-tag">${relic}</span>
+            </div>
+          `;
+        }).join("");
+
+        // Final Deck List
+        const deck = data.master_deck || [];
+        // Group identical cards to count them
+        const counts = {};
+        deck.forEach(c => { counts[c] = (counts[c] || 0) + 1; });
+        
+        elements.deckGrid.innerHTML = Object.entries(counts).map(([card, count]) => {
+          const cardClean = card.replace(/\+/g, "");
+          const isUpgraded = card.includes("+");
+          return `
+            <div class="deck-card-pill ${isUpgraded ? "upgraded" : ""}">
+              <span class="card-name">${cardClean}</span>
+              ${isUpgraded ? '<span class="upgraded-plus">+</span>' : ""}
+              ${count > 1 ? `<span class="card-count">x${count}</span>` : ""}
+            </div>
+          `;
+        }).join("");
+
+        // Health Timeline Chart
+        const hpHistory = data.hp_per_floor || [];
+        if (hpHistory.length > 0) {
+          const maxHp = Math.max(...hpHistory, 100);
+          elements.hpChart.innerHTML = hpHistory.map((hp, index) => {
+            const pct = (hp / maxHp) * 100;
+            return `
+              <div class="chart-bar-wrap" style="height: 100%;">
+                <div class="chart-bar" style="height: ${pct}%;" title="Piso ${index + 1}: ${hp} PV">
+                  <span class="bar-tooltip">F${index + 1}<br/>${hp} PV</span>
+                </div>
+              </div>
+            `;
+          }).join("");
+        } else {
+          elements.hpChart.innerHTML = `<div class="chart-empty">No HP history available.</div>`;
+        }
+      }
+
+      elements.langToggle.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (btn) updateLanguage(btn.dataset.lang);
+      });
+
+      // Init
+      updateLanguage("es");
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* Drops zone custom premium styling */
+  .dropzone-section {
+    margin-bottom: 24px;
+  }
+  .dropzone-container {
+    border: 2px dashed rgba(217, 178, 99, 0.25);
+    background: rgba(22, 12, 34, 0.4);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .dropzone-container:hover, .dropzone-container.dragover {
+    border-color: #d9b263;
+    background: rgba(217, 178, 99, 0.05);
+    box-shadow: 0 0 20px rgba(217, 178, 99, 0.15);
+  }
+  .dropzone-icon {
+    color: rgba(217, 178, 99, 0.65);
+    margin-bottom: 16px;
+  }
+  .dropzone-container h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #ffe0f3;
+  }
+  .dropzone-container .sub-text {
+    font-size: 13px;
+    color: rgba(255,258,232,0.4);
+    margin-bottom: 12px;
+  }
+  .dropzone-container .help-text {
+    font-size: 11px;
+    font-family: monospace;
+    color: rgba(255,258,232,0.3);
+    background: rgba(0,0,0,0.2);
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  /* Error Alert */
+  .error-alert {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* Dashboard Custom Layout */
+  .dashboard-section {
+    animation: fadeIn 0.4s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .dashboard-header {
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .dashboard-header.is-victory {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(22, 12, 34, 0.8) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  .dashboard-header.is-defeat {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(22, 12, 34, 0.8) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .banner-badge {
+    background: rgba(255,255,255,0.08);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .is-victory .banner-badge { color: #86efac; border-color: rgba(34, 197, 94, 0.4); }
+  .is-defeat .banner-badge { color: #fca5a5; border-color: rgba(239, 68, 68, 0.4); }
+
+  .banner-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffe0f3;
+  }
+  .banner-score {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffe0f3;
+  }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 24px;
+  }
+  @media (max-width: 768px) {
+    .dash-grid { grid-template-columns: 1fr; }
+  }
+
+  .dash-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .dash-box {
+    background: rgba(22, 12, 34, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  }
+  .dash-box h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #d9b263;
+    border-left: 3px solid #d9b263;
+    padding-left: 10px;
+  }
+
+  /* Stats list styling */
+  .stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .stat-row .lbl { color: rgba(255,208,232,0.4); }
+  .stat-row .val { color: #ffe0f3; font-weight: 500; }
+
+  /* Relics belt layout */
+  .relic-belt {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 12px;
+  }
+  .relic-item {
+    position: relative;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: help;
+  }
+  .relic-item:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(217,178,99,0.3);
+    transform: translateY(-2px);
+  }
+  .relic-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+  .relic-name-tag {
+    display: none;
+    /* Basic custom tooltip if needed, standard title attribute works fine too */
+  }
+
+  /* Deck List */
+  .deck-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+  .deck-card-pill {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: rgba(255,224,243,0.8);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .deck-card-pill.upgraded {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.05);
+    color: #a7f3d0;
+  }
+  .upgraded-plus {
+    color: #22c55e;
+    font-weight: 700;
+  }
+  .card-count {
+    background: rgba(217, 178, 99, 0.15);
+    color: #ffd65a;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(217, 178, 99, 0.2);
+  }
+
+  /* HP Chart timeline */
+  .chart-container {
+    height: 160px;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .hp-chart {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+  }
+  .chart-bar-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+  }
+  .chart-bar {
+    width: 100%;
+    background: linear-gradient(to top, rgba(239, 68, 68, 0.8), rgba(239, 68, 68, 0.4));
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .chart-bar:hover {
+    background: #ef4444;
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.6));
+  }
+  
+  /* Bar tooltip hover */
+  .bar-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 9px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    text-align: center;
+    z-index: 10;
+  }
+  .chart-bar:hover .bar-tooltip {
+    display: block;
+  }
+
+  .chart-empty {
+    color: rgba(255,258,232,0.3);
+    text-align: center;
+    font-size: 13px;
+    width: 100%;
+    padding: 40px 0;
+  }
+</style>

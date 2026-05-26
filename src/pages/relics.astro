@@ -1,0 +1,401 @@
+---
+import relicData from "../data/relic-data.json";
+
+const payload = JSON.stringify({ relicData }).replace(/</g, "\\u003c");
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>STS2 Relics Library</title>
+    <meta
+      name="description"
+      content="Biblioteca de reliquias de Slay the Spire 2 con filtros bilingües."
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="home-logo" href="/creator" title="Creador de Builds">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#d9b263"/>
+            <path d="M8 22V12l8-5 8 5v10l-8 4-8-4z" fill="#18130a" stroke="#18130a" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M16 7v19M8 12l8 5 8-5" stroke="#d9b263" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span class="logo-text">STS2</span>
+        </a>
+        <div class="topbar-center">
+          <h1 id="pageTitle">Biblioteca de reliquias</h1>
+        </div>
+        <div class="topbar-actions">
+          <a class="nav-link" href="/">Portal</a>
+          <a class="nav-link" href="/cards">Cartas</a>
+          <a class="nav-link active" href="/relics">Reliquias</a>
+          <a class="nav-link" href="/runs">Partidas</a>
+          <a class="nav-link" href="/creator">Creador</a>
+          <div class="lang-toggle" id="langToggle" aria-label="Language">
+            <button type="button" data-lang="es">ES</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="catalog-shell">
+        <section class="catalog-summary">
+          <div>
+            <p id="summaryKicker" class="eyebrow">Reliquias del Spire</p>
+            <h2 id="summaryTitle">Colección Completa</h2>
+          </div>
+          <div id="summaryStats" class="stats-row"></div>
+        </section>
+
+        <section class="filter-band" aria-label="Filtros">
+          <label class="field search-field">
+            <span id="searchLabel">Buscar reliquia</span>
+            <input id="searchInput" type="search" placeholder="Ancla, Anchor, Fuerza, Strength, Bloqueo" />
+          </label>
+          <label class="field">
+            <span id="classLabel">Clase</span>
+            <select id="classFilter"></select>
+          </label>
+          <label class="field">
+            <span id="rarityLabel">Rareza</span>
+            <select id="rarityFilter"></select>
+          </label>
+          <button id="resetButton" class="reset-button" type="button">Limpiar</button>
+        </section>
+
+        <section class="results-heading">
+          <p id="resultsText"></p>
+        </section>
+
+        <section id="relicsGrid" class="catalog-grid" aria-live="polite"></section>
+      </main>
+
+      <dialog id="relicDialog" class="card-dialog">
+        <article class="dialog-panel">
+          <button id="dialogClose" class="dialog-close" type="button" aria-label="Cerrar">×</button>
+          <div id="dialogBody" class="dialog-body"></div>
+        </article>
+      </dialog>
+    </div>
+
+    <script is:inline id="relicsData" type="application/json" set:html={payload}></script>
+    <script is:inline type="module">
+      const { relicData } = JSON.parse(document.getElementById("relicsData").textContent);
+      const allRelics = relicData;
+
+      const copy = {
+        es: {
+          pageTitle: "Biblioteca de reliquias",
+          summaryKicker: "Reliquias del Spire",
+          summaryTitle: "Colección Completa",
+          total: "reliquias totales",
+          shown: "mostradas",
+          search: "Buscar reliquia",
+          searchPlaceholder: "Ancla, Anchor, Fuerza, Strength, Bloqueo",
+          class: "Clase",
+          rarity: "Rareza",
+          reset: "Limpiar",
+          all: "Todas",
+          noResults: "Sin resultados con esos filtros.",
+          resultSingular: "reliquia",
+          resultPlural: "reliquias",
+          details: "Detalle",
+          close: "Cerrar",
+          description: "Descripción",
+          rarityLabel: "Rareza",
+          classLabel: "Clase",
+          synergies: "Sinergias",
+          relicDetail: "Detalles de Reliquia"
+        },
+        en: {
+          pageTitle: "Relics Library",
+          summaryKicker: "Spire Relics",
+          summaryTitle: "Full Collection",
+          total: "total relics",
+          shown: "shown",
+          search: "Search relic",
+          searchPlaceholder: "Anchor, Ancla, Strength, Fuerza, Block",
+          class: "Class",
+          rarity: "Rarity",
+          reset: "Reset",
+          all: "All",
+          noResults: "No relics match those filters.",
+          resultSingular: "relic",
+          resultPlural: "relics",
+          details: "Details",
+          close: "Close",
+          description: "Description",
+          rarityLabel: "Rarity",
+          classLabel: "Class",
+          synergies: "Synergies",
+          relicDetail: "Relic Details"
+        }
+      };
+
+      let activeLang = "es";
+
+      // Dom elements
+      const elements = {
+        langToggle: document.getElementById("langToggle"),
+        pageTitle: document.getElementById("pageTitle"),
+        summaryKicker: document.getElementById("summaryKicker"),
+        summaryTitle: document.getElementById("summaryTitle"),
+        summaryStats: document.getElementById("summaryStats"),
+        searchLabel: document.getElementById("searchLabel"),
+        searchInput: document.getElementById("searchInput"),
+        classLabel: document.getElementById("classLabel"),
+        classFilter: document.getElementById("classFilter"),
+        rarityLabel: document.getElementById("rarityLabel"),
+        rarityFilter: document.getElementById("rarityFilter"),
+        resetButton: document.getElementById("resetButton"),
+        resultsText: document.getElementById("resultsText"),
+        relicsGrid: document.getElementById("relicsGrid"),
+        relicDialog: document.getElementById("relicDialog"),
+        dialogClose: document.getElementById("dialogClose"),
+        dialogBody: document.getElementById("dialogBody")
+      };
+
+      // Populate filter options
+      const classes = ["All", ...new Set(allRelics.map(r => r.class))];
+      const rarities = ["All", ...new Set(allRelics.map(r => r.rarity.en))];
+
+      function buildFilters() {
+        elements.classFilter.innerHTML = classes.map(c => `<option value="${c}">${c === "All" ? copy[activeLang].all : c}</option>`).join("");
+        elements.rarityFilter.innerHTML = rarities.map(r => {
+          let label = r;
+          if (r === "All") label = copy[activeLang].all;
+          else if (activeLang === "es") {
+            // translate rarities
+            if (r === "Common") label = "Común";
+            else if (r === "Uncommon") label = "Poco común";
+            else if (r === "Rare") label = "Rara";
+          }
+          return `<option value="${r}">${label}</option>`;
+        }).join("");
+      }
+
+      function updateLanguage(lang) {
+        activeLang = lang;
+        document.documentElement.lang = lang;
+
+        // Toggle button states
+        elements.langToggle.querySelectorAll("button").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.lang === lang);
+        });
+
+        // Translate labels
+        elements.pageTitle.textContent = copy[lang].pageTitle;
+        elements.summaryKicker.textContent = copy[lang].summaryKicker;
+        elements.summaryTitle.textContent = copy[lang].summaryTitle;
+        elements.searchLabel.textContent = copy[lang].search;
+        elements.searchInput.placeholder = copy[lang].searchPlaceholder;
+        elements.classLabel.textContent = copy[lang].class;
+        elements.rarityLabel.textContent = copy[lang].rarity;
+        elements.resetButton.textContent = copy[lang].reset;
+
+        buildFilters();
+        render();
+      }
+
+      function getFilteredRelics() {
+        const query = elements.searchInput.value.toLowerCase().trim();
+        const selClass = elements.classFilter.value;
+        const selRarity = elements.rarityFilter.value;
+
+        return allRelics.filter(relic => {
+          // Class filter
+          if (selClass !== "All" && relic.class !== selClass) return false;
+          // Rarity filter
+          if (selRarity !== "All" && relic.rarity.en !== selRarity) return false;
+
+          // Query filter
+          if (query) {
+            const nameMatch = relic.name[activeLang].toLowerCase().includes(query) || relic.name.en.toLowerCase().includes(query);
+            const descMatch = relic.description[activeLang].toLowerCase().includes(query) || relic.description.en.toLowerCase().includes(query);
+            const rarityMatch = relic.rarity[activeLang].toLowerCase().includes(query);
+            const classMatch = relic.class.toLowerCase().includes(query);
+            return nameMatch || descMatch || rarityMatch || classMatch;
+          }
+
+          return true;
+        });
+      }
+
+      function render() {
+        const filtered = getFilteredRelics();
+
+        // Update stats
+        elements.summaryStats.innerHTML = `
+          <div class="stat-pill"><span class="stat-num">${allRelics.length}</span> <span class="stat-lbl">${copy[activeLang].total}</span></div>
+          <div class="stat-pill"><span class="stat-num">${filtered.length}</span> <span class="stat-lbl">${copy[activeLang].shown}</span></div>
+        `;
+
+        // Update results counter
+        if (filtered.length === 0) {
+          elements.resultsText.textContent = copy[activeLang].noResults;
+          elements.relicsGrid.innerHTML = "";
+          return;
+        }
+
+        elements.resultsText.textContent = `${filtered.length} ${filtered.length === 1 ? copy[activeLang].resultSingular : copy[activeLang].resultPlural}`;
+
+        // Render grid
+        elements.relicsGrid.innerHTML = filtered.map(relic => {
+          const rarityClass = relic.rarity.en.toLowerCase();
+          const cardClass = relic.class.toLowerCase();
+          return `
+            <article class="card-item relic-card rarity-${rarityClass} class-${cardClass}" data-id="${relic.id}" style="cursor: pointer;">
+              <div class="card-image-wrap">
+                <img class="relic-img" src="${relic.image}" alt="${relic.name[activeLang]}" loading="lazy" />
+              </div>
+              <div class="card-info">
+                <p class="card-kicker rarity-tag">${relic.rarity[activeLang]} • ${relic.class}</p>
+                <h3 class="card-name">${relic.name[activeLang]}</h3>
+                <p class="card-description">${relic.description[activeLang]}</p>
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        // Setup click listeners
+        elements.relicsGrid.querySelectorAll(".card-item").forEach(card => {
+          card.addEventListener("click", () => {
+            const id = card.dataset.id;
+            const relic = allRelics.find(r => r.id === id);
+            if (relic) showDetail(relic);
+          });
+        });
+      }
+
+      function showDetail(relic) {
+        elements.dialogBody.innerHTML = `
+          <div class="dialog-grid">
+            <div class="dialog-left">
+              <div class="detail-portrait-wrap">
+                <img class="detail-portrait" src="${relic.image}" alt="${relic.name[activeLang]}" />
+              </div>
+              <h2 class="detail-title">${relic.name[activeLang]}</h2>
+              <p class="detail-kicker rarity-tag">${relic.rarity[activeLang]} • ${relic.class}</p>
+            </div>
+            <div class="dialog-right">
+              <section class="detail-section">
+                <h4>${copy[activeLang].description}</h4>
+                <p class="detail-desc-text">${relic.description[activeLang]}</p>
+              </section>
+              <section class="detail-section">
+                <h4>${copy[activeLang].synergies}</h4>
+                <p class="detail-desc-text">
+                  ${activeLang === "es" 
+                    ? `Esta reliquia de categoría <strong>${relic.rarity.es}</strong> es ideal para potenciar las mecánicas de la clase <strong>${relic.class}</strong>. Combínala con cartas del mismo arquetipo para explotar su sinergia en tu partida.` 
+                    : `This <strong>${relic.rarity.en}</strong> relic is ideal to empower mechanics for the <strong>${relic.class}</strong> class. Pair it with cards of the same archetype to trigger powerful synergies.`
+                  }
+                </p>
+              </section>
+            </div>
+          </div>
+        `;
+        elements.relicDialog.showModal();
+      }
+
+      // Listeners
+      elements.langToggle.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (btn) updateLanguage(btn.dataset.lang);
+      });
+
+      elements.searchInput.addEventListener("input", render);
+      elements.classFilter.addEventListener("change", render);
+      elements.rarityFilter.addEventListener("change", render);
+
+      elements.resetButton.addEventListener("click", () => {
+        elements.searchInput.value = "";
+        elements.classFilter.value = "All";
+        elements.rarityFilter.value = "All";
+        render();
+      });
+
+      elements.dialogClose.addEventListener("click", () => {
+        elements.relicDialog.close();
+      });
+
+      elements.relicDialog.addEventListener("click", (e) => {
+        if (e.target === elements.relicDialog) {
+          elements.relicDialog.close();
+        }
+      });
+
+      // Init
+      updateLanguage("es");
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchParam = urlParams.get("search");
+      if (searchParam) {
+        elements.searchInput.value = searchParam;
+        render();
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* Extra styling for relics if needed */
+  .relic-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+    transition: transform 0.3s ease;
+  }
+  .card-item:hover .relic-img {
+    transform: scale(1.15) rotate(5deg);
+  }
+  .card-image-wrap {
+    padding: 16px;
+    background: rgba(255,255,255,0.01);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rarity-tag {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+  .rarity-común .rarity-tag, .rarity-common .rarity-tag { color: #ffe0f3; }
+  .rarity-poco\ común .rarity-tag, .rarity-uncommon .rarity-tag { color: #ffd65a; }
+  .rarity-rara .rarity-tag, .rarity-rare .rarity-tag { color: #ff3ff0; }
+  
+  .relic-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .relic-card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    border-color: rgba(217, 178, 99, 0.3);
+  }
+  
+  .detail-portrait-wrap {
+    padding: 24px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .detail-portrait {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6));
+  }
+</style>

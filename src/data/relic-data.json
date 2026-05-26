@@ -1,0 +1,376 @@
+[
+  {
+    "id": "Anchor",
+    "name": {
+      "es": "Ancla",
+      "en": "Anchor"
+    },
+    "description": {
+      "es": "Comienza cada combate con 10 de Bloqueo.",
+      "en": "Start each combat with 10 Block."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_Anchor.png"
+  },
+  {
+    "id": "HornCleat",
+    "name": {
+      "es": "Cornamusa",
+      "en": "Horn Cleat"
+    },
+    "description": {
+      "es": "En el turno 2, gana 14 de Bloqueo.",
+      "en": "On turn 2, gain 14 Block."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_HornCleat.png"
+  },
+  {
+    "id": "RuinedHelmet",
+    "name": {
+      "es": "Casco Ruinoso",
+      "en": "Ruined Helmet"
+    },
+    "description": {
+      "es": "Comienza cada combate con 1 de Fuerza.",
+      "en": "Start each combat with 1 Strength."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Ironclad",
+    "image": "https://slaythespire.wiki.gg/images/StS2_RuinedHelmet.png"
+  },
+  {
+    "id": "CloakClasp",
+    "name": {
+      "es": "Broche de Capa",
+      "en": "Cloak Clasp"
+    },
+    "description": {
+      "es": "Al final de tu turno, gana 1 de Bloqueo por cada carta en tu mano.",
+      "en": "At the end of your turn, gain 1 Block for each card in your hand."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_CloakClasp.png"
+  },
+  {
+    "id": "Vambrace",
+    "name": {
+      "es": "Bracalete",
+      "en": "Vambrace"
+    },
+    "description": {
+      "es": "Al comienzo del combate, gana 2 de Fuerza.",
+      "en": "At the start of combat, gain 2 Strength."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Ironclad",
+    "image": "https://slaythespire.wiki.gg/images/StS2_Vambrace.png"
+  },
+  {
+    "id": "ParryingShield",
+    "name": {
+      "es": "Escudo de Parada",
+      "en": "Parrying Shield"
+    },
+    "description": {
+      "es": "Gana 1 de Destreza al comienzo del combate.",
+      "en": "Gain 1 Dexterity at the start of combat."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_ParryingShield.png"
+  },
+  {
+    "id": "BronzeScales",
+    "name": {
+      "es": "Escamas de Bronce",
+      "en": "Bronze Scales"
+    },
+    "description": {
+      "es": "Comienza cada combate con 3 de Espinas.",
+      "en": "Start each combat with 3 Thorns."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_BronzeScales.png"
+  },
+  {
+    "id": "CharonsAshes",
+    "name": {
+      "es": "Cenizas de Caronte",
+      "en": "Charon's Ashes"
+    },
+    "description": {
+      "es": "Cada vez que agotes una carta, inflige 3 de daño a todos los enemigos.",
+      "en": "Whenever you Exhaust a card, deal 3 damage to all enemies."
+    },
+    "rarity": {
+      "es": "Rara",
+      "en": "Rare"
+    },
+    "class": "Ironclad",
+    "image": "https://slaythespire.wiki.gg/images/StS2_CharonsAshes.png"
+  },
+  {
+    "id": "JossPaper",
+    "name": {
+      "es": "Papel de Joss",
+      "en": "Joss Paper"
+    },
+    "description": {
+      "es": "Roba 1 carta por cada 5 cartas agotadas.",
+      "en": "Draw 1 card every 5 Exhausts."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Ironclad",
+    "image": "https://slaythespire.wiki.gg/images/StS2_JossPaper.png"
+  },
+  {
+    "id": "CentennialPuzzle",
+    "name": {
+      "es": "Rompecabezas Centenario",
+      "en": "Centennial Puzzle"
+    },
+    "description": {
+      "es": "La primera vez que pierdas PV en cada combate, roba 3 cartas.",
+      "en": "The first time you lose HP each combat, draw 3 cards."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_CentennialPuzzle.png"
+  },
+  {
+    "id": "DemonTongue",
+    "name": {
+      "es": "Lengua de Demonio",
+      "en": "Demon Tongue"
+    },
+    "description": {
+      "es": "Gana Fuerza cada vez que obtengas Vulnerable.",
+      "en": "Gain Strength whenever you gain Vulnerable."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Ironclad",
+    "image": "https://slaythespire.wiki.gg/images/StS2_DemonTongue.png"
+  },
+  {
+    "id": "SelfFormingClay",
+    "name": {
+      "es": "Arcilla Automoldeable",
+      "en": "Self-Forming Clay"
+    },
+    "description": {
+      "es": "Cada vez que pierdas PV en combate, gana 3 de Bloqueo el siguiente turno.",
+      "en": "Whenever you lose HP in combat, gain 3 Block next turn."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_SelfFormingClay.png"
+  },
+  {
+    "id": "StrikeDummy",
+    "name": {
+      "es": "Maniquí de Ataque",
+      "en": "Strike Dummy"
+    },
+    "description": {
+      "es": "Las cartas 'Ataque rápido' o que contengan 'Golpe' infligen 3 de daño adicional.",
+      "en": "Strike cards deal 3 additional damage."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_StrikeDummy.png"
+  },
+  {
+    "id": "IntimidatingHelmet",
+    "name": {
+      "es": "Casco Intimidador",
+      "en": "Intimidating Helmet"
+    },
+    "description": {
+      "es": "Al comienzo de cada combate, aplica 2 de Vulnerable a todos los enemigos.",
+      "en": "Start each combat with 2 Vulnerable applied to all enemies."
+    },
+    "rarity": {
+      "es": "Común",
+      "en": "Common"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_IntimidatingHelmet.png"
+  },
+  {
+    "id": "HelicalDart",
+    "name": {
+      "es": "Dardo Helicoidal",
+      "en": "Helical Dart"
+    },
+    "description": {
+      "es": "Las cartas de Daga (Shivs) infligen 2 de daño adicional.",
+      "en": "Shivs deal 2 additional damage."
+    },
+    "rarity": {
+      "es": "Rara",
+      "en": "Rare"
+    },
+    "class": "Silent",
+    "image": "https://slaythespire.wiki.gg/images/StS2_HelicalDart.png"
+  },
+  {
+    "id": "Kunai",
+    "name": {
+      "es": "Kunai",
+      "en": "Kunai"
+    },
+    "description": {
+      "es": "Cada vez que juegues 3 Ataques en un solo turno, gana 1 de Destreza.",
+      "en": "Every 3 Attacks played in a single turn, gain 1 Dexterity."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_Kunai.png"
+  },
+  {
+    "id": "OrnamentalFan",
+    "name": {
+      "es": "Abanico Ornamental",
+      "en": "Ornamental Fan"
+    },
+    "description": {
+      "es": "Cada vez que juegues 3 Ataques en un solo turno, gana 4 de Bloqueo.",
+      "en": "Every 3 Attacks played in a single turn, gain 4 Block."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_OrnamentalFan.png"
+  },
+  {
+    "id": "Nunchaku",
+    "name": {
+      "es": "Nunchaku",
+      "en": "Nunchaku"
+    },
+    "description": {
+      "es": "Cada vez que juegues 10 Ataques, gana 1 de Energía.",
+      "en": "Every 10 Attacks played, gain 1 Energy."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_Nunchaku.png"
+  },
+  {
+    "id": "Kusarigama",
+    "name": {
+      "es": "Kusarigama",
+      "en": "Kusarigama"
+    },
+    "description": {
+      "es": "Cada vez que juegues 3 Ataques en un solo turno, gana 1 de Fuerza.",
+      "en": "Every 3 Attacks played in a single turn, gain 1 Strength."
+    },
+    "rarity": {
+      "es": "Rara",
+      "en": "Rare"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_Kusarigama.png"
+  },
+  {
+    "id": "SneckoSkull",
+    "name": {
+      "es": "Cráneo Snecko",
+      "en": "Snecko Skull"
+    },
+    "description": {
+      "es": "Cada vez que apliques Veneno, aplica 1 más de Veneno.",
+      "en": "Whenever you apply Poison, apply 1 additional Poison."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Silent",
+    "image": "https://slaythespire.wiki.gg/images/StS2_SneckoSkull.png"
+  },
+  {
+    "id": "TwistedFunnel",
+    "name": {
+      "es": "Embudo Torcido",
+      "en": "Twisted Funnel"
+    },
+    "description": {
+      "es": "Al comienzo de cada combate, aplica 4 de Veneno a todos los enemigos.",
+      "en": "Start each combat with 4 Poison applied to all enemies."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Silent",
+    "image": "https://slaythespire.wiki.gg/images/StS2_TwistedFunnel.png"
+  },
+  {
+    "id": "PaperPhrog",
+    "name": {
+      "es": "Rana de Papel",
+      "en": "Paper Phrog"
+    },
+    "description": {
+      "es": "Vulnerable aumenta el daño de ataque infligido en un 75% en lugar del 50%.",
+      "en": "Vulnerable increases attack damage by 75% instead of 50%."
+    },
+    "rarity": {
+      "es": "Poco común",
+      "en": "Uncommon"
+    },
+    "class": "Neutral",
+    "image": "https://slaythespire.wiki.gg/images/StS2_MiniRegent.png"
+  }
+]
