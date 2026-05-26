@@ -12,7 +12,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>STS2 Creador de Builds</title>
+    <title>Slay the Shadow 2 - Creador de Builds</title>
     <meta
       name="description"
       content="Creador de builds para Slay the Spire 2. Elige cartas y descubre qué builds encajan."
@@ -21,13 +21,9 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="home-logo" href="/creator" title="Creador de Builds">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="#d9b263"/>
-            <path d="M8 22V12l8-5 8 5v10l-8 4-8-4z" fill="#18130a" stroke="#18130a" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M16 7v19M8 12l8 5 8-5" stroke="#d9b263" stroke-width="1.5" stroke-linejoin="round"/>
-          </svg>
-          <span class="logo-text">STS2</span>
+        <a class="home-logo" href="/" title="Slay the Shadow 2">
+          <img src="/favicon.svg" width="36" height="36" alt="Slay the Shadow 2 Logo" style="filter: drop-shadow(0 0 8px rgba(217, 178, 99, 0.4));" />
+          <span class="logo-text">Slay the Shadow 2</span>
         </a>
         <div class="topbar-center">
           <h1 id="pageTitle">Creador de Builds</h1>
@@ -225,6 +221,7 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         (guide.builds || []).map((build) => ({ guide, build }))
       );
 
+      let nextInstanceId = 1;
       const state = {
         lang: localStorage.getItem("sts2-lang") || "es",
         classSlug: null,
@@ -421,13 +418,13 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         els.deckGrid.innerHTML = state.deck
           .map(
             (card) => `
-              <article class="deck-card color-${escapeHtml(card.color)}" data-card-id="${escapeHtml(card.id)}">
+              <article class="deck-card color-${escapeHtml(card.color)}" data-instance-id="${card.instanceId}">
                 <img src="${normalizeUrl(card.image_url)}" alt="" loading="lazy" />
                 <div class="deck-card-info">
                   <strong>${escapeHtml(cardName(card))}</strong>
                   <small>${costLabel(card)} · ${escapeHtml(cardType(card))}</small>
                 </div>
-                <button type="button" class="remove-btn" data-remove-id="${escapeHtml(card.id)}">${escapeHtml(t("remove"))}</button>
+                <button type="button" class="remove-btn" data-remove-instance-id="${card.instanceId}">${escapeHtml(t("remove"))}</button>
               </article>
             `
           )
@@ -637,13 +634,118 @@ const payload = JSON.stringify({ spireData, buildGuides }).replace(/</g, "\\u003
         if (!button) return;
         state.classSlug = button.dataset.class || null;
         state.deck = [];
+        
+        if (state.classSlug) {
+          const character = spireData.characters.find(
+            (c) => c.id.toLowerCase() === state.classSlug
+          );
+          if (character && character.starting_deck) {
+            character.starting_deck.forEach((cardId) => {
+              const targetId = cardId.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase();
+              const foundCard = allCards.find((c) => c.id === targetId);
+              if (foundCard) {
+                state.deck.push({ ...foundCard, instanceId: nextInstanceId++ });
+              }
+            });
+          }
+        }
+        
         els.cardSearch.value = "";
+        state.query = "";
         renderAll();
       });
 
       els.cardSearch.addEventListener("input", () => {
         state.query = els.cardSearch.value;
         renderSearch();
+      });
+
+      // Add card from search results
+      els.searchResults.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-add-id]");
+        if (!button) return;
+        const cardId = button.dataset.addId;
+        const card = allCards.find((c) => c.id === cardId);
+        if (card) {
+          state.deck.push({ ...card, instanceId: nextInstanceId++ });
+          els.cardSearch.value = "";
+          state.query = "";
+          renderAll();
+        }
+      });
+
+      // Remove card or view stats in deck grid
+      els.deckGrid.addEventListener("click", (event) => {
+        const removeBtn = event.target.closest("[data-remove-instance-id]");
+        if (removeBtn) {
+          event.stopPropagation();
+          const instanceId = parseInt(removeBtn.dataset.removeInstanceId, 10);
+          state.deck = state.deck.filter((c) => c.instanceId !== instanceId);
+          renderAll();
+          return;
+        }
+
+        const cardEl = event.target.closest("[data-instance-id]");
+        if (cardEl) {
+          const instanceId = parseInt(cardEl.dataset.instanceId, 10);
+          const card = state.deck.find((c) => c.instanceId === instanceId);
+          if (card) {
+            openCardDialog(card);
+          }
+        }
+      });
+
+      // Clear deck workspace
+      els.clearDeck.addEventListener("click", () => {
+        state.deck = [];
+        els.cardSearch.value = "";
+        state.query = "";
+        renderAll();
+      });
+
+      // View build recommendation details
+      els.buildResults.addEventListener("click", (event) => {
+        const buildCard = event.target.closest("[data-build-id]");
+        if (!buildCard) return;
+        const buildId = buildCard.dataset.buildId;
+        const guideSlug = buildCard.dataset.guideSlug;
+        const result = buildCatalog.find(
+          (r) => r.build.id === buildId && r.guide.slug === guideSlug
+        );
+        if (result) {
+          // Compute matching cards details
+          const deckAliases = state.deck.map((c) => ({ card: c, aliases: cardAliases(c) }));
+          const matches = [];
+          buildSections.forEach(([section, roleKey, weight]) => {
+            (result.build[section] || []).forEach((entry) => {
+              const normalizedEntry = normalizeName(entry);
+              deckAliases.forEach(({ card, aliases }) => {
+                if (
+                  aliases.some(
+                    (alias) =>
+                      normalizedEntry === alias ||
+                      normalizedEntry.includes(alias) ||
+                      alias.includes(normalizedEntry)
+                  )
+                ) {
+                  matches.push({ card, section, roleKey, weight });
+                }
+              });
+            });
+          });
+          openBuildDialog(result.guide, result.build, matches);
+        }
+      });
+
+      // Dialog Close Controls & Click Outside Backdrop
+      els.buildDialogClose.addEventListener("click", () => els.buildDialog.close());
+      els.cardDialogClose.addEventListener("click", () => els.cardDialog.close());
+
+      els.buildDialog.addEventListener("click", (e) => {
+        if (e.target === els.buildDialog) els.buildDialog.close();
+      });
+      els.cardDialog.addEventListener("click", (e) => {
+        if (e.target === els.cardDialog) els.cardDialog.close();
       });
 
       renderAll();
